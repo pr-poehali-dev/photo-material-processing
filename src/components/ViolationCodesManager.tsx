@@ -2,6 +2,22 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import SortableMaterial from './SortableMaterial';
 
 export interface PhotoMaterial {
   id: string;
@@ -143,6 +159,33 @@ export default function ViolationCodesManager({
     });
     onCodesChange(updatedCodes);
   };
+
+  const handleDragEnd = (event: DragEndEvent, codeValue: string) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const updatedCodes = codes.map(c => {
+      if (c.code === codeValue) {
+        const oldIndex = c.photoMaterials.findIndex(m => m.id === active.id);
+        const newIndex = c.photoMaterials.findIndex(m => m.id === over.id);
+        return {
+          ...c,
+          photoMaterials: arrayMove(c.photoMaterials, oldIndex, newIndex),
+        };
+      }
+      return c;
+    });
+
+    onCodesChange(updatedCodes);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   if (!isOpen) return null;
 
@@ -326,35 +369,26 @@ export default function ViolationCodesManager({
                           </div>
                         )}
 
-                        <div className="space-y-2">
-                          {item.photoMaterials.map((material) => (
-                            <div
-                              key={material.id}
-                              className="bg-slate-800 rounded-lg p-3 border border-slate-700 flex items-center justify-between"
-                            >
-                              <div className="flex items-center gap-3 flex-1">
-                                <div className={`p-2 bg-gradient-to-br ${material.color} rounded-lg`}>
-                                  <Icon name={material.icon} className="text-white" size={16} />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="text-white text-sm font-medium">{material.title}</div>
-                                  <div className="text-slate-400 text-xs font-mono">{material.pattern}</div>
-                                </div>
-                                <div className="text-xs text-slate-500 px-2 py-1 bg-slate-700 rounded">
-                                  {material.type === 'photo' ? 'Фото' : 'Видео'}
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteMaterial(item.code, material.id)}
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              >
-                                <Icon name="X" size={14} />
-                              </Button>
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={(event) => handleDragEnd(event, item.code)}
+                        >
+                          <SortableContext
+                            items={item.photoMaterials.map(m => m.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="space-y-2">
+                              {item.photoMaterials.map((material) => (
+                                <SortableMaterial
+                                  key={material.id}
+                                  material={material}
+                                  onDelete={(id) => handleDeleteMaterial(item.code, id)}
+                                />
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          </SortableContext>
+                        </DndContext>
                       </div>
                     )}
                   </div>
