@@ -77,6 +77,27 @@ const mockMaterials: Material[] = [
 ];
 
 const STORAGE_KEY = 'trafficvision_violation_codes';
+const REGISTRY_KEY = 'trafficvision_processed_registry';
+
+const getProcessedRegistry = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(REGISTRY_KEY);
+    if (stored) {
+      return new Set(JSON.parse(stored));
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки реестра:', error);
+  }
+  return new Set();
+};
+
+const saveProcessedRegistry = (registry: Set<string>) => {
+  try {
+    localStorage.setItem(REGISTRY_KEY, JSON.stringify(Array.from(registry)));
+  } catch (error) {
+    console.error('Ошибка сохранения реестра:', error);
+  }
+};
 
 const getStoredCodes = (): ViolationCode[] => {
   try {
@@ -170,6 +191,7 @@ export default function Index() {
   const [violationCodes, setViolationCodes] = useState<ViolationCode[]>(getStoredCodes());
   const [sourcePath, setSourcePath] = useState<string>('');
   const [outputPath, setOutputPath] = useState<string>('');
+  const [processedRegistry, setProcessedRegistry] = useState<Set<string>>(getProcessedRegistry());
 
   useEffect(() => {
     try {
@@ -178,6 +200,10 @@ export default function Index() {
       console.error('Ошибка сохранения кодов:', error);
     }
   }, [violationCodes]);
+
+  useEffect(() => {
+    saveProcessedRegistry(processedRegistry);
+  }, [processedRegistry]);
 
   const handleSelectSourcePath = async () => {
     try {
@@ -201,9 +227,17 @@ export default function Index() {
             return;
           }
 
+          const newFiles = tarFiles.filter(file => !processedRegistry.has(file.name));
+          const duplicateCount = tarFiles.length - newFiles.length;
+
+          if (newFiles.length === 0) {
+            alert('Все файлы уже были добавлены в систему');
+            return;
+          }
+
           setIsUploading(true);
           
-          const parsedMetadata = await parseTarFiles(tarFiles);
+          const parsedMetadata = await parseTarFiles(newFiles);
           
           const newMaterials: Material[] = parsedMetadata.map((metadata, index) => {
             const violationCode = metadata.violationCode;
@@ -218,15 +252,24 @@ export default function Index() {
               violationType: codeInfo?.description,
               status: 'pending',
               images: metadata.images,
-              tarFile: tarFiles[index],
+              tarFile: newFiles[index],
             };
+          });
+
+          setProcessedRegistry(prev => {
+            const updated = new Set(prev);
+            newFiles.forEach(file => updated.add(file.name));
+            return updated;
           });
 
           setMaterials(prev => [...newMaterials, ...prev]);
           setIsUploading(false);
           
           const violationsFound = newMaterials.filter(m => m.violationCode).length;
-          alert(`Загружено ${tarFiles.length} TAR-архивов\nОбнаружено нарушений: ${violationsFound}`);
+          const message = duplicateCount > 0 
+            ? `Загружено ${newFiles.length} TAR-архивов\nПропущено дубликатов: ${duplicateCount}\nОбнаружено нарушений: ${violationsFound}`
+            : `Загружено ${newFiles.length} TAR-архивов\nОбнаружено нарушений: ${violationsFound}`;
+          alert(message);
         }
       };
       
