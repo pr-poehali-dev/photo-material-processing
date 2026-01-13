@@ -5,6 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable';
 import Icon from '@/components/ui/icon';
 import ViolationCodesManager, { ViolationCode } from '@/components/ViolationCodesManager';
 import { parseTarFiles, TarImages } from '@/utils/tarParser';
@@ -397,9 +402,9 @@ export default function Index() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2">
-            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6">
+        <ResizablePanelGroup direction="horizontal" className="min-h-[600px]">
+          <ResizablePanel defaultSize={65} minSize={40}>
+            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 h-full mr-3">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-white">Материалы для обработки</h2>
                 <div className="flex gap-2">
@@ -456,10 +461,12 @@ export default function Index() {
                 ))}
               </div>
             </Card>
-          </div>
+          </ResizablePanel>
 
-          <div className="col-span-1">
-            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 sticky top-6">
+          <ResizableHandle withHandle />
+
+          <ResizablePanel defaultSize={35} minSize={30}>
+            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 h-full overflow-y-auto ml-3">
               {selectedMaterial ? (
                 <div className="space-y-6">
                   <div>
@@ -581,8 +588,8 @@ export default function Index() {
                 </div>
               )}
             </Card>
-          </div>
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
 
       <ViolationCodesManager
