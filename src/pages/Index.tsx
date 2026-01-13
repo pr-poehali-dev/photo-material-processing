@@ -322,7 +322,35 @@ export default function Index() {
     processed: materials.filter(m => m.status === 'processed').length,
   };
 
+  const exportProcessedMaterial = async (material: Material) => {
+    if (!outputPath) {
+      alert('Сначала выберите каталог для обработанных материалов');
+      return;
+    }
+
+    if (!material.tarFile) {
+      alert('TAR-файл недоступен для экспорта');
+      return;
+    }
+
+    try {
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(material.tarFile);
+      link.href = url;
+      link.download = material.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Ошибка экспорта:', error);
+      alert('Ошибка при экспорте файла');
+    }
+  };
+
   const updateMaterialStatus = (id: string, status: Material['status'], violationCode?: string) => {
+    const material = materials.find(m => m.id === id);
+    
     setMaterials(prev =>
       prev.map(m =>
         m.id === id
@@ -349,6 +377,10 @@ export default function Index() {
             : undefined,
         } : null
       );
+    }
+
+    if (status === 'processed' && material && outputPath) {
+      exportProcessedMaterial(material);
     }
   };
 
