@@ -3,73 +3,47 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { TarImages } from '@/utils/tarParser';
+import { PhotoMaterial } from './ViolationCodesManager';
 
 interface PhotoGalleryProps {
   images?: TarImages;
   fileName: string;
+  photoMaterials?: PhotoMaterial[];
 }
 
-export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
+export default function PhotoGallery({ images, fileName, photoMaterials }: PhotoGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
-  const photoCards = [
-    {
-      key: 'collage',
-      image: images?.collage,
-      title: 'Общий коллаж',
-      description: '*_0.jpg',
-      icon: 'LayoutGrid' as const,
-      color: 'from-blue-500 to-cyan-600',
-    },
-    {
-      key: 'time1',
-      image: images?.time1,
-      title: 'Время от момента включения сигнала (1)',
-      description: '*_1.jpg',
-      icon: 'Clock' as const,
-      color: 'from-amber-500 to-orange-600',
-    },
-    {
-      key: 'time2',
-      image: images?.time2,
-      title: 'Время от момента включения сигнала (2)',
-      description: '*_2.jpg',
-      icon: 'Clock' as const,
-      color: 'from-amber-500 to-orange-600',
-    },
-    {
-      key: 'fix1',
-      image: images?.fix1,
-      title: 'Время первой фиксации',
-      description: '*_3.jpg',
-      icon: 'Target' as const,
-      color: 'from-red-500 to-rose-600',
-    },
-    {
-      key: 'fix2',
-      image: images?.fix2,
-      title: 'Время второй фиксации',
-      description: '*_4.jpg',
-      icon: 'Target' as const,
-      color: 'from-red-500 to-rose-600',
-    },
-    {
-      key: 'plate',
-      image: images?.plate,
-      title: 'Увеличенное фото ГРЗ',
-      description: '*_grz.jpg',
-      icon: 'RectangleHorizontal' as const,
-      color: 'from-purple-500 to-pink-600',
-    },
-    {
-      key: 'general',
-      image: images?.general,
-      title: 'Общий кадр',
-      description: '*.jpg',
-      icon: 'Camera' as const,
-      color: 'from-green-500 to-emerald-600',
-    },
-  ];
+  const getImageByPattern = (pattern: string): string | undefined => {
+    if (!images) return undefined;
+    
+    const patternKey = pattern
+      .replace('*_0.jpg', 'collage')
+      .replace('*_1.jpg', 'time1')
+      .replace('*_2.jpg', 'time2')
+      .replace('*_3.jpg', 'fix1')
+      .replace('*_4.jpg', 'fix2')
+      .replace('*_grz.jpg', 'plate')
+      .replace('*.jpg', 'general')
+      .replace('*.mp4', 'video');
+    
+    return images[patternKey as keyof TarImages];
+  };
+
+  const photoCards = photoMaterials
+    ? photoMaterials
+        .filter(m => m.type === 'photo')
+        .map(material => ({
+          key: material.id,
+          image: getImageByPattern(material.pattern),
+          title: material.title,
+          description: material.pattern,
+          icon: material.icon as const,
+          color: material.color,
+        }))
+    : [];
+
+  const videoMaterial = photoMaterials?.find(m => m.type === 'video');
 
   const availablePhotos = photoCards.filter(card => card.image);
 
@@ -152,20 +126,20 @@ export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
         })}
       </div>
 
-      {images?.video && (
+      {videoMaterial && getImageByPattern(videoMaterial.pattern) && (
         <div className="mt-4">
           <div className="flex items-center gap-2 mb-3">
-            <div className="p-2 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg">
-              <Icon name="Video" className="text-white" size={18} />
+            <div className={`p-2 bg-gradient-to-br ${videoMaterial.color} rounded-lg`}>
+              <Icon name={videoMaterial.icon} className="text-white" size={18} />
             </div>
             <div>
-              <h3 className="text-white font-semibold">Видеоматериал</h3>
-              <p className="text-xs text-slate-400">*.mp4</p>
+              <h3 className="text-white font-semibold">{videoMaterial.title}</h3>
+              <p className="text-xs text-slate-400">{videoMaterial.pattern}</p>
             </div>
           </div>
           <Card className="bg-slate-800/50 border-slate-700 overflow-hidden">
             <video 
-              src={images.video} 
+              src={getImageByPattern(videoMaterial.pattern)} 
               controls 
               className="w-full"
               preload="metadata"

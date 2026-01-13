@@ -83,7 +83,76 @@ const getStoredCodes = (): ViolationCode[] => {
     console.error('Ошибка загрузки кодов:', error);
   }
   return [
-    { code: '34', description: 'КОАП 12.6 - Нарушение правил применения ремней безопасности' },
+    { 
+      code: '34', 
+      description: 'КОАП 12.6 - Нарушение правил применения ремней безопасности',
+      photoMaterials: [
+        {
+          id: 'collage',
+          pattern: '*_0.jpg',
+          title: 'Общий коллаж',
+          icon: 'LayoutGrid',
+          color: 'from-blue-500 to-cyan-600',
+          type: 'photo',
+        },
+        {
+          id: 'time1',
+          pattern: '*_1.jpg',
+          title: 'Время от момента включения сигнала (1)',
+          icon: 'Clock',
+          color: 'from-amber-500 to-orange-600',
+          type: 'photo',
+        },
+        {
+          id: 'time2',
+          pattern: '*_2.jpg',
+          title: 'Время от момента включения сигнала (2)',
+          icon: 'Clock',
+          color: 'from-amber-500 to-orange-600',
+          type: 'photo',
+        },
+        {
+          id: 'fix1',
+          pattern: '*_3.jpg',
+          title: 'Время первой фиксации',
+          icon: 'Target',
+          color: 'from-red-500 to-rose-600',
+          type: 'photo',
+        },
+        {
+          id: 'fix2',
+          pattern: '*_4.jpg',
+          title: 'Время второй фиксации',
+          icon: 'Target',
+          color: 'from-red-500 to-rose-600',
+          type: 'photo',
+        },
+        {
+          id: 'plate',
+          pattern: '*_grz.jpg',
+          title: 'Увеличенное фото ГРЗ',
+          icon: 'RectangleHorizontal',
+          color: 'from-purple-500 to-pink-600',
+          type: 'photo',
+        },
+        {
+          id: 'general',
+          pattern: '*.jpg',
+          title: 'Общий кадр',
+          icon: 'Camera',
+          color: 'from-green-500 to-emerald-600',
+          type: 'photo',
+        },
+        {
+          id: 'video',
+          pattern: '*.mp4',
+          title: 'Видеоматериал',
+          icon: 'Video',
+          color: 'from-red-500 to-pink-600',
+          type: 'video',
+        },
+      ]
+    },
   ];
 };
 
@@ -424,7 +493,11 @@ export default function Index() {
                   </div>
 
                   <div className="border-t border-slate-700 pt-4">
-                    <PhotoGallery images={selectedMaterial.images} fileName={selectedMaterial.fileName} />
+                    <PhotoGallery 
+                      images={selectedMaterial.images} 
+                      fileName={selectedMaterial.fileName}
+                      photoMaterials={violationCodes.find(v => v.code === selectedMaterial.violationCode)?.photoMaterials}
+                    />
                   </div>
 
                   <div className="border-t border-slate-700 pt-4">
