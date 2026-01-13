@@ -78,8 +78,6 @@ const mockMaterials: Material[] = [
 
 const STORAGE_KEY = 'trafficvision_violation_codes';
 const REGISTRY_KEY = 'trafficvision_processed_registry';
-const SOURCE_PATH_KEY = 'trafficvision_source_path';
-const OUTPUT_PATH_KEY = 'trafficvision_output_path';
 
 const getProcessedRegistry = (): Set<string> => {
   try {
@@ -191,8 +189,8 @@ export default function Index() {
   const [isUploading, setIsUploading] = useState(false);
   const [isCodesManagerOpen, setIsCodesManagerOpen] = useState(false);
   const [violationCodes, setViolationCodes] = useState<ViolationCode[]>(getStoredCodes());
-  const [sourcePath, setSourcePath] = useState<string>(() => localStorage.getItem(SOURCE_PATH_KEY) || '');
-  const [outputPath, setOutputPath] = useState<string>(() => localStorage.getItem(OUTPUT_PATH_KEY) || '');
+  const [sourcePath, setSourcePath] = useState<string>('');
+  const [outputPath, setOutputPath] = useState<string>('');
   const [processedRegistry, setProcessedRegistry] = useState<Set<string>>(getProcessedRegistry());
 
   useEffect(() => {
@@ -206,14 +204,6 @@ export default function Index() {
   useEffect(() => {
     saveProcessedRegistry(processedRegistry);
   }, [processedRegistry]);
-
-  useEffect(() => {
-    localStorage.setItem(SOURCE_PATH_KEY, sourcePath);
-  }, [sourcePath]);
-
-  useEffect(() => {
-    localStorage.setItem(OUTPUT_PATH_KEY, outputPath);
-  }, [outputPath]);
 
   const handleSelectSourcePath = async () => {
     try {
