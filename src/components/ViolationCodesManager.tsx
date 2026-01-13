@@ -78,6 +78,7 @@ export default function ViolationCodesManager({
   const [newDescription, setNewDescription] = useState('');
   const [editingCode, setEditingCode] = useState<string | null>(null);
   const [showAddMaterial, setShowAddMaterial] = useState<string | null>(null);
+  const [editingMaterial, setEditingMaterial] = useState<{ codeValue: string; materialId: string } | null>(null);
   const [newMaterial, setNewMaterial] = useState<Partial<PhotoMaterial>>({
     pattern: '',
     title: '',
@@ -178,6 +179,60 @@ export default function ViolationCodesManager({
     });
 
     onCodesChange(updatedCodes);
+  };
+
+  const handleEditMaterial = (codeValue: string, materialId: string) => {
+    const code = codes.find(c => c.code === codeValue);
+    const material = code?.photoMaterials?.find(m => m.id === materialId);
+    
+    if (material) {
+      setNewMaterial({
+        pattern: material.pattern,
+        title: material.title,
+        icon: material.icon,
+        color: material.color,
+        type: material.type,
+      });
+      setEditingMaterial({ codeValue, materialId });
+    }
+  };
+
+  const handleSaveEditMaterial = () => {
+    if (!editingMaterial || !newMaterial.pattern || !newMaterial.title) {
+      alert('Заполните шаблон и название материала');
+      return;
+    }
+
+    const updatedCodes = codes.map(c => {
+      if (c.code === editingMaterial.codeValue) {
+        return {
+          ...c,
+          photoMaterials: (c.photoMaterials || []).map(m =>
+            m.id === editingMaterial.materialId
+              ? {
+                  ...m,
+                  pattern: newMaterial.pattern!,
+                  title: newMaterial.title!,
+                  icon: newMaterial.icon || 'Image',
+                  color: newMaterial.color || 'from-blue-500 to-cyan-600',
+                  type: newMaterial.type || 'photo',
+                }
+              : m
+          ),
+        };
+      }
+      return c;
+    });
+
+    onCodesChange(updatedCodes);
+    setNewMaterial({
+      pattern: '',
+      title: '',
+      icon: 'Image',
+      color: 'from-blue-500 to-cyan-600',
+      type: 'photo',
+    });
+    setEditingMaterial(null);
   };
 
   const sensors = useSensors(
@@ -296,7 +351,7 @@ export default function ViolationCodesManager({
                           </Button>
                         </div>
 
-                        {showAddMaterial === item.code && (
+                        {(showAddMaterial === item.code || editingMaterial?.codeValue === item.code) && (
                           <div className="bg-slate-800 rounded-lg p-3 border border-slate-600 space-y-2">
                             <div className="grid grid-cols-2 gap-2">
                               <Input
@@ -346,6 +401,7 @@ export default function ViolationCodesManager({
                                 variant="ghost"
                                 onClick={() => {
                                   setShowAddMaterial(null);
+                                  setEditingMaterial(null);
                                   setNewMaterial({
                                     pattern: '',
                                     title: '',
@@ -360,10 +416,10 @@ export default function ViolationCodesManager({
                               </Button>
                               <Button
                                 size="sm"
-                                onClick={() => handleAddMaterial(item.code)}
+                                onClick={() => editingMaterial ? handleSaveEditMaterial() : handleAddMaterial(item.code)}
                                 className="bg-green-500 text-white hover:bg-green-600"
                               >
-                                Сохранить
+                                {editingMaterial ? 'Обновить' : 'Сохранить'}
                               </Button>
                             </div>
                           </div>
@@ -384,6 +440,7 @@ export default function ViolationCodesManager({
                                   <SortableMaterial
                                     key={material.id}
                                     material={material}
+                                    onEdit={(id) => handleEditMaterial(item.code, id)}
                                     onDelete={(id) => handleDeleteMaterial(item.code, id)}
                                   />
                                 ))}

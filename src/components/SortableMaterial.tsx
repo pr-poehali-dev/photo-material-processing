@@ -7,9 +7,10 @@ import { PhotoMaterial } from './ViolationCodesManager';
 interface SortableMaterialProps {
   material: PhotoMaterial;
   onDelete: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
-export default function SortableMaterial({ material, onDelete }: SortableMaterialProps) {
+export default function SortableMaterial({ material, onDelete, onEdit }: SortableMaterialProps) {
   const {
     attributes,
     listeners,
@@ -50,14 +51,24 @@ export default function SortableMaterial({ material, onDelete }: SortableMateria
           {material.type === 'photo' ? 'Фото' : 'Видео'}
         </div>
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => onDelete(material.id)}
-        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-2"
-      >
-        <Icon name="X" size={14} />
-      </Button>
+      <div className="flex gap-1 ml-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onEdit(material.id)}
+          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+        >
+          <Icon name="Pencil" size={14} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onDelete(material.id)}
+          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+        >
+          <Icon name="X" size={14} />
+        </Button>
+      </div>
     </div>
   );
 }
