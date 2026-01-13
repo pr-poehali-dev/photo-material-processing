@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { TarImages } from '@/utils/tarParser';
 
@@ -8,6 +10,8 @@ interface PhotoGalleryProps {
 }
 
 export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
+  const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
+
   if (!images || Object.keys(images).length === 0) {
     return (
       <div className="text-center py-8 text-slate-400">
@@ -70,16 +74,25 @@ export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
           if (!card.image) return null;
 
           return (
-            <Card key={card.key} className="bg-slate-800/50 border-slate-700 overflow-hidden hover:border-slate-600 transition-all group">
+            <Card 
+              key={card.key} 
+              className="bg-slate-800/50 border-slate-700 overflow-hidden hover:border-slate-600 transition-all group cursor-pointer"
+              onClick={() => setSelectedImage({ url: card.image, title: card.title })}
+            >
               <div className="relative aspect-video bg-slate-900">
                 <img
                   src={card.image}
                   alt={card.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                 />
                 <div className={`absolute top-3 left-3 px-2 py-1 bg-gradient-to-r ${card.color} rounded-md flex items-center gap-1.5 shadow-lg`}>
                   <Icon name={card.icon} size={14} className="text-white" />
                   <span className="text-white text-xs font-medium">{card.description}</span>
+                </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 backdrop-blur-sm rounded-full p-3">
+                    <Icon name="ZoomIn" size={24} className="text-white" />
+                  </div>
                 </div>
               </div>
               <div className="p-3">
@@ -94,6 +107,36 @@ export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
         <div className="text-center py-6 text-slate-500">
           <Icon name="AlertCircle" size={24} className="mx-auto mb-2" />
           <p className="text-sm">Изображения не обнаружены в TAR-архиве</p>
+        </div>
+      )}
+
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-7xl max-h-[90vh] w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 right-0 text-white hover:bg-white/10 z-10"
+            >
+              <Icon name="X" size={24} />
+            </Button>
+            <div className="bg-slate-900 rounded-lg p-2">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.title}
+                className="w-full h-auto max-h-[80vh] object-contain rounded"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <div className="p-3 border-t border-slate-700 mt-2">
+                <h3 className="text-white font-semibold">{selectedImage.title}</h3>
+                <p className="text-slate-400 text-sm mt-1">{fileName}</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
