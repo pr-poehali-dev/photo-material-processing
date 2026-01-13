@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import ViolationCodesManager, { ViolationCode } from '@/components/ViolationCodesManager';
-import { parseTarFiles } from '@/utils/tarParser';
+import { parseTarFiles, TarImages } from '@/utils/tarParser';
+import PhotoGallery from '@/components/PhotoGallery';
 
 interface Material {
   id: string;
@@ -17,6 +18,8 @@ interface Material {
   violationType?: string;
   violationCode?: string;
   status: 'pending' | 'violation' | 'clean' | 'analytics';
+  images?: TarImages;
+  tarFile?: File;
 }
 
 const mockMaterials: Material[] = [
@@ -106,10 +109,12 @@ export default function Index() {
             id: `uploaded-${Date.now()}-${index}`,
             fileName: metadata.fileName,
             timestamp: metadata.timestamp || new Date().toLocaleString('ru-RU'),
-            preview: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400',
+            preview: metadata.preview || 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400',
             violationCode: violationCode,
             violationType: codeInfo?.description,
             status: violationCode ? 'violation' : 'clean',
+            images: metadata.images,
+            tarFile: tarFiles[index],
           };
         });
 
@@ -394,6 +399,10 @@ export default function Index() {
                         </>
                       )}
                     </div>
+                  </div>
+
+                  <div className="border-t border-slate-700 pt-4">
+                    <PhotoGallery images={selectedMaterial.images} fileName={selectedMaterial.fileName} />
                   </div>
 
                   <div className="border-t border-slate-700 pt-4">
