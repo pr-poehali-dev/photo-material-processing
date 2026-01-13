@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,15 +71,37 @@ const mockMaterials: Material[] = [
   },
 ];
 
+const STORAGE_KEY = 'trafficvision_violation_codes';
+
+const getStoredCodes = (): ViolationCode[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки кодов:', error);
+  }
+  return [
+    { code: '34', description: 'КОАП 12.6 - Нарушение правил применения ремней безопасности' },
+  ];
+};
+
 export default function Index() {
   const [materials, setMaterials] = useState<Material[]>(mockMaterials);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isCodesManagerOpen, setIsCodesManagerOpen] = useState(false);
-  const [violationCodes, setViolationCodes] = useState<ViolationCode[]>([
-    { code: '34', description: 'КОАП 12.6 - Нарушение правил применения ремней безопасности' },
-  ]);
+  const [violationCodes, setViolationCodes] = useState<ViolationCode[]>(getStoredCodes());
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(violationCodes));
+    } catch (error) {
+      console.error('Ошибка сохранения кодов:', error);
+    }
+  }, [violationCodes]);
 
   const handleTarUpload = async () => {
     try {
