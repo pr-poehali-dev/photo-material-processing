@@ -193,12 +193,47 @@ export default function Index() {
           const path = firstFile.webkitRelativePath || firstFile.path || '';
           const folderPath = path.split('/')[0];
           setSourcePath(folderPath);
+
+          const tarFiles = files.filter((file: File) => file.name.endsWith('.tar'));
+          
+          if (tarFiles.length === 0) {
+            alert('В выбранной папке не найдено TAR-архивов');
+            return;
+          }
+
+          setIsUploading(true);
+          
+          const parsedMetadata = await parseTarFiles(tarFiles);
+          
+          const newMaterials: Material[] = parsedMetadata.map((metadata, index) => {
+            const violationCode = metadata.violationCode;
+            const codeInfo = violationCode ? violationCodes.find(c => c.code === violationCode) : undefined;
+            
+            return {
+              id: `uploaded-${Date.now()}-${index}`,
+              fileName: metadata.fileName,
+              timestamp: metadata.timestamp || new Date().toLocaleString('ru-RU'),
+              preview: metadata.preview || 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400',
+              violationCode: violationCode,
+              violationType: codeInfo?.description,
+              status: 'pending',
+              images: metadata.images,
+              tarFile: tarFiles[index],
+            };
+          });
+
+          setMaterials(prev => [...newMaterials, ...prev]);
+          setIsUploading(false);
+          
+          const violationsFound = newMaterials.filter(m => m.violationCode).length;
+          alert(`Загружено ${tarFiles.length} TAR-архивов\nОбнаружено нарушений: ${violationsFound}`);
         }
       };
       
       input.click();
     } catch (error) {
       console.error('Ошибка выбора каталога:', error);
+      setIsUploading(false);
     }
   };
 
