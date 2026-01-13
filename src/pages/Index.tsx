@@ -70,6 +70,48 @@ export default function Index() {
   const [materials, setMaterials] = useState<Material[]>(mockMaterials);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleTarUpload = async () => {
+    try {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.webkitdirectory = true;
+      input.multiple = true;
+      
+      input.onchange = async (e: any) => {
+        const files = Array.from(e.target.files as FileList);
+        const tarFiles = files.filter(file => file.name.endsWith('.tar'));
+        
+        if (tarFiles.length === 0) {
+          alert('В выбранной папке не найдено TAR-архивов');
+          return;
+        }
+
+        setIsUploading(true);
+        
+        const newMaterials: Material[] = tarFiles.map((file, index) => ({
+          id: `uploaded-${Date.now()}-${index}`,
+          fileName: file.name,
+          timestamp: new Date().toLocaleString('ru-RU'),
+          preview: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400',
+          status: 'pending' as const,
+        }));
+
+        setMaterials(prev => [...newMaterials, ...prev]);
+        
+        setTimeout(() => {
+          setIsUploading(false);
+          alert(`Загружено ${tarFiles.length} TAR-архивов`);
+        }, 1000);
+      };
+      
+      input.click();
+    } catch (error) {
+      console.error('Ошибка загрузки:', error);
+      setIsUploading(false);
+    }
+  };
 
   const violationCodes = [
     { code: '12.9.2', name: 'Превышение скорости на 20-40 км/ч' },
@@ -145,9 +187,14 @@ export default function Index() {
               </div>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
-                <Icon name="Upload" size={16} className="mr-2" />
-                Загрузить TAR
+              <Button 
+                variant="outline" 
+                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                onClick={handleTarUpload}
+                disabled={isUploading}
+              >
+                <Icon name={isUploading ? "Loader2" : "Upload"} size={16} className={`mr-2 ${isUploading ? 'animate-spin' : ''}`} />
+                {isUploading ? 'Загрузка...' : 'Загрузить TAR'}
               </Button>
               <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
                 <Icon name="FileCode" size={16} className="mr-2" />
