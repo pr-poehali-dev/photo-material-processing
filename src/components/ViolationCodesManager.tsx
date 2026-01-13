@@ -121,7 +121,7 @@ export default function ViolationCodesManager({
         return {
           ...c,
           photoMaterials: [
-            ...c.photoMaterials,
+            ...(c.photoMaterials || []),
             {
               id: `material_${Date.now()}`,
               pattern: newMaterial.pattern!,
@@ -152,7 +152,7 @@ export default function ViolationCodesManager({
       if (c.code === codeValue) {
         return {
           ...c,
-          photoMaterials: c.photoMaterials.filter(m => m.id !== materialId),
+          photoMaterials: (c.photoMaterials || []).filter(m => m.id !== materialId),
         };
       }
       return c;
@@ -166,7 +166,7 @@ export default function ViolationCodesManager({
     if (!over || active.id === over.id) return;
 
     const updatedCodes = codes.map(c => {
-      if (c.code === codeValue) {
+      if (c.code === codeValue && c.photoMaterials) {
         const oldIndex = c.photoMaterials.findIndex(m => m.id === active.id);
         const newIndex = c.photoMaterials.findIndex(m => m.id === over.id);
         return {
@@ -284,7 +284,7 @@ export default function ViolationCodesManager({
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-sm font-semibold text-white flex items-center gap-2">
                             <Icon name="Images" size={16} className="text-blue-400" />
-                            Фотоматериалы ({item.photoMaterials.length})
+                            Фотоматериалы ({item.photoMaterials?.length || 0})
                           </h4>
                           <Button
                             size="sm"
@@ -369,26 +369,34 @@ export default function ViolationCodesManager({
                           </div>
                         )}
 
-                        <DndContext
-                          sensors={sensors}
-                          collisionDetection={closestCenter}
-                          onDragEnd={(event) => handleDragEnd(event, item.code)}
-                        >
-                          <SortableContext
-                            items={item.photoMaterials.map(m => m.id)}
-                            strategy={verticalListSortingStrategy}
+                        {item.photoMaterials && item.photoMaterials.length > 0 ? (
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event) => handleDragEnd(event, item.code)}
                           >
-                            <div className="space-y-2">
-                              {item.photoMaterials.map((material) => (
-                                <SortableMaterial
-                                  key={material.id}
-                                  material={material}
-                                  onDelete={(id) => handleDeleteMaterial(item.code, id)}
-                                />
-                              ))}
-                            </div>
-                          </SortableContext>
-                        </DndContext>
+                            <SortableContext
+                              items={item.photoMaterials.map(m => m.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              <div className="space-y-2">
+                                {item.photoMaterials.map((material) => (
+                                  <SortableMaterial
+                                    key={material.id}
+                                    material={material}
+                                    onDelete={(id) => handleDeleteMaterial(item.code, id)}
+                                  />
+                                ))}
+                              </div>
+                            </SortableContext>
+                          </DndContext>
+                        ) : (
+                          <div className="text-center py-8 text-slate-400">
+                            <Icon name="ImageOff" size={32} className="mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">Нет фотоматериалов</p>
+                            <p className="text-xs mt-1">Нажмите "Добавить материал" для начала</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
