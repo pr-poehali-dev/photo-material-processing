@@ -5,6 +5,11 @@ export interface TarImages {
   violation?: string;
   plate?: string;
   general?: string;
+  time1?: string;
+  time2?: string;
+  fix1?: string;
+  fix2?: string;
+  video?: string;
 }
 
 export interface TarMetadata {
@@ -48,12 +53,24 @@ export async function parseTarFile(file: File): Promise<TarMetadata> {
         if (fileName.includes('_0.jpg')) {
           images.collage = url;
         } else if (fileName.includes('_1.jpg')) {
-          images.violation = url;
+          images.time1 = url;
+        } else if (fileName.includes('_2.jpg')) {
+          images.time2 = url;
+        } else if (fileName.includes('_3.jpg')) {
+          images.fix1 = url;
+        } else if (fileName.includes('_4.jpg')) {
+          images.fix2 = url;
         } else if (fileName.includes('_grz.jpg')) {
           images.plate = url;
         } else if (fileName.endsWith('.jpg') && !fileName.includes('_')) {
           images.general = url;
         }
+      }
+      
+      if (fileName.endsWith('.mp4')) {
+        const blob = new Blob([entry.buffer], { type: 'video/mp4' });
+        const url = URL.createObjectURL(blob);
+        images.video = url;
       }
     }
     

@@ -22,12 +22,36 @@ export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
       color: 'from-blue-500 to-cyan-600',
     },
     {
-      key: 'violation',
-      image: images?.violation,
-      title: 'Увеличенное фото нарушения',
+      key: 'time1',
+      image: images?.time1,
+      title: 'Время от момента включения сигнала (1)',
       description: '*_1.jpg',
-      icon: 'AlertCircle' as const,
-      color: 'from-orange-500 to-red-600',
+      icon: 'Clock' as const,
+      color: 'from-amber-500 to-orange-600',
+    },
+    {
+      key: 'time2',
+      image: images?.time2,
+      title: 'Время от момента включения сигнала (2)',
+      description: '*_2.jpg',
+      icon: 'Clock' as const,
+      color: 'from-amber-500 to-orange-600',
+    },
+    {
+      key: 'fix1',
+      image: images?.fix1,
+      title: 'Время первой фиксации',
+      description: '*_3.jpg',
+      icon: 'Target' as const,
+      color: 'from-red-500 to-rose-600',
+    },
+    {
+      key: 'fix2',
+      image: images?.fix2,
+      title: 'Время второй фиксации',
+      description: '*_4.jpg',
+      icon: 'Target' as const,
+      color: 'from-red-500 to-rose-600',
     },
     {
       key: 'plate',
@@ -127,6 +151,30 @@ export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
           );
         })}
       </div>
+
+      {images?.video && (
+        <div className="mt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg">
+              <Icon name="Video" className="text-white" size={18} />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold">Видеоматериал</h3>
+              <p className="text-xs text-slate-400">*.mp4</p>
+            </div>
+          </div>
+          <Card className="bg-slate-800/50 border-slate-700 overflow-hidden">
+            <video 
+              src={images.video} 
+              controls 
+              className="w-full"
+              preload="metadata"
+            >
+              Ваш браузер не поддерживает видео
+            </video>
+          </Card>
+        </div>
+      )}
 
       {Object.keys(images).length === 0 && (
         <div className="text-center py-6 text-slate-500">
