@@ -22,7 +22,7 @@ interface Material {
   preview: string;
   violationType?: string;
   violationCode?: string;
-  status: 'pending' | 'violation' | 'clean' | 'analytics';
+  status: 'pending' | 'violation' | 'clean' | 'analytics' | 'processed';
   images?: TarImages;
   tarFile?: File;
 }
@@ -236,6 +236,7 @@ export default function Index() {
     clean: materials.filter(m => m.status === 'clean').length,
     analytics: materials.filter(m => m.status === 'analytics').length,
     pending: materials.filter(m => m.status === 'pending').length,
+    processed: materials.filter(m => m.status === 'processed').length,
   };
 
   const updateMaterialStatus = (id: string, status: Material['status'], violationCode?: string) => {
@@ -276,6 +277,8 @@ export default function Index() {
         return 'bg-emerald-500';
       case 'analytics':
         return 'bg-violet-500';
+      case 'processed':
+        return 'bg-blue-500';
       default:
         return 'bg-gray-400';
     }
@@ -289,6 +292,8 @@ export default function Index() {
         return 'Без нарушения';
       case 'analytics':
         return 'Аналитика';
+      case 'processed':
+        return 'Обработан';
       default:
         return 'Ожидает';
     }
@@ -340,7 +345,7 @@ export default function Index() {
       </header>
 
       <div className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-6 gap-4 mb-6">
           <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 hover-scale">
             <div className="flex items-center justify-between">
               <div>
@@ -397,6 +402,18 @@ export default function Index() {
               </div>
               <div className="p-3 bg-gray-700/50 rounded-lg">
                 <Icon name="Clock" className="text-gray-400" size={24} />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 hover-scale">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-sm mb-1">Обработаны</p>
+                <p className="text-3xl font-bold text-blue-500">{stats.processed}</p>
+              </div>
+              <div className="p-3 bg-blue-500/10 rounded-lg">
+                <Icon name="CheckCheck" className="text-blue-500" size={24} />
               </div>
             </div>
           </Card>
@@ -574,10 +591,13 @@ export default function Index() {
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-700 pt-4">
-                    <Button className="w-full bg-gradient-to-r from-sky-500 to-violet-600 text-white">
-                      <Icon name="Play" size={16} className="mr-2" />
-                      Воспроизвести видео
+                  <div className="border-t border-slate-700 pt-4 space-y-3">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700"
+                      onClick={() => updateMaterialStatus(selectedMaterial.id, 'processed')}
+                    >
+                      <Icon name="CheckCheck" size={16} className="mr-2" />
+                      Обработать материал
                     </Button>
                   </div>
                 </div>
