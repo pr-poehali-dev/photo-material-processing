@@ -168,6 +168,8 @@ export default function Index() {
   const [isUploading, setIsUploading] = useState(false);
   const [isCodesManagerOpen, setIsCodesManagerOpen] = useState(false);
   const [violationCodes, setViolationCodes] = useState<ViolationCode[]>(getStoredCodes());
+  const [sourcePath, setSourcePath] = useState<string>('');
+  const [outputPath, setOutputPath] = useState<string>('');
 
   useEffect(() => {
     try {
@@ -176,6 +178,52 @@ export default function Index() {
       console.error('Ошибка сохранения кодов:', error);
     }
   }, [violationCodes]);
+
+  const handleSelectSourcePath = async () => {
+    try {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.webkitdirectory = true;
+      input.multiple = true;
+      
+      input.onchange = async (e: any) => {
+        const files = Array.from(e.target.files as FileList);
+        if (files.length > 0) {
+          const firstFile = files[0] as any;
+          const path = firstFile.webkitRelativePath || firstFile.path || '';
+          const folderPath = path.split('/')[0];
+          setSourcePath(folderPath);
+        }
+      };
+      
+      input.click();
+    } catch (error) {
+      console.error('Ошибка выбора каталога:', error);
+    }
+  };
+
+  const handleSelectOutputPath = async () => {
+    try {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.webkitdirectory = true;
+      input.multiple = true;
+      
+      input.onchange = async (e: any) => {
+        const files = Array.from(e.target.files as FileList);
+        if (files.length > 0) {
+          const firstFile = files[0] as any;
+          const path = firstFile.webkitRelativePath || firstFile.path || '';
+          const folderPath = path.split('/')[0];
+          setOutputPath(folderPath);
+        }
+      };
+      
+      input.click();
+    } catch (error) {
+      console.error('Ошибка выбора каталога:', error);
+    }
+  };
 
   const handleTarUpload = async () => {
     try {
@@ -345,6 +393,44 @@ export default function Index() {
       </header>
 
       <div className="container mx-auto px-6 py-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0 mr-3">
+                <label className="text-slate-400 text-sm mb-2 block">Каталог с TAR-архивами</label>
+                <div className="bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-white text-sm truncate">
+                  {sourcePath || 'Не выбран'}
+                </div>
+              </div>
+              <Button
+                onClick={handleSelectSourcePath}
+                className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white hover:from-blue-600 hover:to-cyan-700 flex-shrink-0"
+              >
+                <Icon name="FolderOpen" size={16} className="mr-2" />
+                Выбрать
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0 mr-3">
+                <label className="text-slate-400 text-sm mb-2 block">Каталог для обработанных материалов</label>
+                <div className="bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-white text-sm truncate">
+                  {outputPath || 'Не выбран'}
+                </div>
+              </div>
+              <Button
+                onClick={handleSelectOutputPath}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 flex-shrink-0"
+              >
+                <Icon name="FolderOutput" size={16} className="mr-2" />
+                Выбрать
+              </Button>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-6 gap-4 mb-6">
           <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 hover-scale">
             <div className="flex items-center justify-between">
