@@ -77,6 +77,10 @@ const mockMaterials: Material[] = [
 ];
 
 const STORAGE_KEY = 'trafficvision_violation_codes';
+const MATERIALS_KEY = 'trafficvision_materials';
+const SOURCE_PATH_KEY = 'trafficvision_source_path';
+const OUTPUT_PATH_KEY = 'trafficvision_output_path';
+const STATUS_FILTER_KEY = 'trafficvision_status_filter';
 
 const getStoredCodes = (): ViolationCode[] => {
   try {
@@ -161,16 +165,40 @@ const getStoredCodes = (): ViolationCode[] => {
   ];
 };
 
+const getStoredMaterials = (): Material[] => {
+  try {
+    const stored = localStorage.getItem(MATERIALS_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки материалов:', error);
+  }
+  return mockMaterials;
+};
+
+const getStoredStatusFilter = (): Set<Material['status']> => {
+  try {
+    const stored = localStorage.getItem(STATUS_FILTER_KEY);
+    if (stored) {
+      return new Set(JSON.parse(stored));
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки фильтра:', error);
+  }
+  return new Set(['pending', 'violation', 'clean', 'analytics', 'processed']);
+};
+
 export default function Index() {
-  const [materials, setMaterials] = useState<Material[]>(mockMaterials);
+  const [materials, setMaterials] = useState<Material[]>(getStoredMaterials);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isCodesManagerOpen, setIsCodesManagerOpen] = useState(false);
   const [violationCodes, setViolationCodes] = useState<ViolationCode[]>(getStoredCodes());
-  const [sourcePath, setSourcePath] = useState<string>('');
-  const [outputPath, setOutputPath] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<Set<Material['status']>>(new Set(['pending', 'violation', 'clean', 'analytics', 'processed']));
+  const [sourcePath, setSourcePath] = useState<string>(() => localStorage.getItem(SOURCE_PATH_KEY) || '');
+  const [outputPath, setOutputPath] = useState<string>(() => localStorage.getItem(OUTPUT_PATH_KEY) || '');
+  const [statusFilter, setStatusFilter] = useState<Set<Material['status']>>(getStoredStatusFilter);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -180,6 +208,42 @@ export default function Index() {
       console.error('Ошибка сохранения кодов:', error);
     }
   }, [violationCodes]);
+
+  useEffect(() => {
+    try {
+      const materialsToSave = materials.map(m => ({
+        ...m,
+        tarFile: undefined,
+      }));
+      localStorage.setItem(MATERIALS_KEY, JSON.stringify(materialsToSave));
+    } catch (error) {
+      console.error('Ошибка сохранения материалов:', error);
+    }
+  }, [materials]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SOURCE_PATH_KEY, sourcePath);
+    } catch (error) {
+      console.error('Ошибка сохранения пути:', error);
+    }
+  }, [sourcePath]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(OUTPUT_PATH_KEY, outputPath);
+    } catch (error) {
+      console.error('Ошибка сохранения пути:', error);
+    }
+  }, [outputPath]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STATUS_FILTER_KEY, JSON.stringify(Array.from(statusFilter)));
+    } catch (error) {
+      console.error('Ошибка сохранения фильтра:', error);
+    }
+  }, [statusFilter]);
 
   const handleSelectSourcePath = async () => {
     try {
