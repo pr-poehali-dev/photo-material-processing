@@ -6,6 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
+import ViolationCodesManager, { ViolationCode } from '@/components/ViolationCodesManager';
+import { parseTarFiles } from '@/utils/tarParser';
 
 interface Material {
   id: string;
@@ -71,6 +73,10 @@ export default function Index() {
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCodesManagerOpen, setIsCodesManagerOpen] = useState(false);
+  const [violationCodes, setViolationCodes] = useState<ViolationCode[]>([
+    { code: '34', description: 'КОАП 12.6 - Нарушение правил применения ремней безопасности' },
+  ]);
 
   const handleTarUpload = async () => {
     try {
@@ -90,20 +96,28 @@ export default function Index() {
 
         setIsUploading(true);
         
-        const newMaterials: Material[] = tarFiles.map((file, index) => ({
-          id: `uploaded-${Date.now()}-${index}`,
-          fileName: file.name,
-          timestamp: new Date().toLocaleString('ru-RU'),
-          preview: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400',
-          status: 'pending' as const,
-        }));
+        const parsedMetadata = await parseTarFiles(tarFiles);
+        
+        const newMaterials: Material[] = parsedMetadata.map((metadata, index) => {
+          const violationCode = metadata.violationCode;
+          const codeInfo = violationCode ? violationCodes.find(c => c.code === violationCode) : undefined;
+          
+          return {
+            id: `uploaded-${Date.now()}-${index}`,
+            fileName: metadata.fileName,
+            timestamp: metadata.timestamp || new Date().toLocaleString('ru-RU'),
+            preview: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400',
+            violationCode: violationCode,
+            violationType: codeInfo?.description,
+            status: violationCode ? 'violation' : 'clean',
+          };
+        });
 
         setMaterials(prev => [...newMaterials, ...prev]);
+        setIsUploading(false);
         
-        setTimeout(() => {
-          setIsUploading(false);
-          alert(`Загружено ${tarFiles.length} TAR-архивов`);
-        }, 1000);
+        const violationsFound = newMaterials.filter(m => m.violationCode).length;
+        alert(`Загружено ${tarFiles.length} TAR-архивов\nОбнаружено нарушений: ${violationsFound}`);
       };
       
       input.click();
@@ -113,13 +127,7 @@ export default function Index() {
     }
   };
 
-  const violationCodes = [
-    { code: '12.9.2', name: 'Превышение скорости на 20-40 км/ч' },
-    { code: '12.9.3', name: 'Превышение скорости на 40-60 км/ч' },
-    { code: '12.12.1', name: 'Проезд на запрещающий сигнал' },
-    { code: '12.15.3', name: 'Выезд на встречную полосу' },
-    { code: '12.16.1', name: 'Несоблюдение требований разметки' },
-  ];
+
 
   const stats = {
     total: materials.length,
@@ -138,7 +146,7 @@ export default function Index() {
               status,
               violationCode,
               violationType: violationCode
-                ? violationCodes.find(v => v.code === violationCode)?.name
+                ? violationCodes.find(v => v.code === violationCode)?.description
                 : undefined,
             }
           : m
@@ -195,6 +203,14 @@ export default function Index() {
               >
                 <Icon name={isUploading ? "Loader2" : "Upload"} size={16} className={`mr-2 ${isUploading ? 'animate-spin' : ''}`} />
                 {isUploading ? 'Загрузка...' : 'Загрузить TAR'}
+              </Button>
+              <Button 
+                variant="outline" 
+                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                onClick={() => setIsCodesManagerOpen(true)}
+              >
+                <Icon name="Settings" size={16} className="mr-2" />
+                Коды нарушений
               </Button>
               <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
                 <Icon name="FileCode" size={16} className="mr-2" />
@@ -361,6 +377,22 @@ export default function Index() {
                           {getStatusLabel(selectedMaterial.status)}
                         </Badge>
                       </div>
+                      {selectedMaterial.violationCode && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-slate-400 text-sm">Код нарушения:</span>
+                            <span className="text-amber-400 font-mono font-semibold">
+                              {selectedMaterial.violationCode}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-400 text-sm">Тип нарушения:</span>
+                            <span className="text-white text-sm">
+                              {selectedMaterial.violationType || 'Неизвестно'}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -380,7 +412,7 @@ export default function Index() {
                       <SelectContent className="bg-slate-900 border-slate-700">
                         {violationCodes.map(v => (
                           <SelectItem key={v.code} value={v.code} className="text-white">
-                            {v.code} - {v.name}
+                            {v.code} - {v.description}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -435,6 +467,13 @@ export default function Index() {
           </div>
         </div>
       </div>
+
+      <ViolationCodesManager
+        isOpen={isCodesManagerOpen}
+        onClose={() => setIsCodesManagerOpen(false)}
+        codes={violationCodes}
+        onCodesChange={setViolationCodes}
+      />
     </div>
   );
 }
