@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -10,7 +10,63 @@ interface PhotoGalleryProps {
 }
 
 export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
-  const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+  const photoCards = [
+    {
+      key: 'collage',
+      image: images?.collage,
+      title: 'Общий коллаж',
+      description: '*_0.jpg',
+      icon: 'LayoutGrid' as const,
+      color: 'from-blue-500 to-cyan-600',
+    },
+    {
+      key: 'violation',
+      image: images?.violation,
+      title: 'Увеличенное фото нарушения',
+      description: '*_1.jpg',
+      icon: 'AlertCircle' as const,
+      color: 'from-orange-500 to-red-600',
+    },
+    {
+      key: 'plate',
+      image: images?.plate,
+      title: 'Увеличенное фото ГРЗ',
+      description: '*_grz.jpg',
+      icon: 'RectangleHorizontal' as const,
+      color: 'from-purple-500 to-pink-600',
+    },
+    {
+      key: 'general',
+      image: images?.general,
+      title: 'Общий кадр',
+      description: '*.jpg',
+      icon: 'Camera' as const,
+      color: 'from-green-500 to-emerald-600',
+    },
+  ];
+
+  const availablePhotos = photoCards.filter(card => card.image);
+
+  useEffect(() => {
+    if (selectedImageIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && selectedImageIndex > 0) {
+        setSelectedImageIndex(selectedImageIndex - 1);
+      }
+      if (e.key === 'ArrowRight' && selectedImageIndex < availablePhotos.length - 1) {
+        setSelectedImageIndex(selectedImageIndex + 1);
+      }
+      if (e.key === 'Escape') {
+        setSelectedImageIndex(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImageIndex, availablePhotos.length]);
 
   if (!images || Object.keys(images).length === 0) {
     return (
@@ -22,40 +78,7 @@ export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
     );
   }
 
-  const photoCards = [
-    {
-      key: 'collage',
-      image: images.collage,
-      title: 'Общий коллаж',
-      description: '*_0.jpg',
-      icon: 'LayoutGrid' as const,
-      color: 'from-blue-500 to-cyan-600',
-    },
-    {
-      key: 'violation',
-      image: images.violation,
-      title: 'Увеличенное фото нарушения',
-      description: '*_1.jpg',
-      icon: 'AlertCircle' as const,
-      color: 'from-orange-500 to-red-600',
-    },
-    {
-      key: 'plate',
-      image: images.plate,
-      title: 'Увеличенное фото ГРЗ',
-      description: '*_grz.jpg',
-      icon: 'RectangleHorizontal' as const,
-      color: 'from-purple-500 to-pink-600',
-    },
-    {
-      key: 'general',
-      image: images.general,
-      title: 'Общий кадр',
-      description: '*.jpg',
-      icon: 'Camera' as const,
-      color: 'from-green-500 to-emerald-600',
-    },
-  ];
+  const selectedPhoto = selectedImageIndex !== null ? availablePhotos[selectedImageIndex] : null;
 
   return (
     <div className="space-y-4">
@@ -73,11 +96,13 @@ export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
         {photoCards.map((card) => {
           if (!card.image) return null;
 
+          const index = availablePhotos.findIndex(p => p.key === card.key);
+
           return (
             <Card 
               key={card.key} 
               className="bg-slate-800/50 border-slate-700 overflow-hidden hover:border-slate-600 transition-all group cursor-pointer"
-              onClick={() => setSelectedImage({ url: card.image, title: card.title })}
+              onClick={() => setSelectedImageIndex(index)}
             >
               <div className="relative aspect-video bg-slate-900">
                 <img
@@ -110,30 +135,64 @@ export default function PhotoGallery({ images, fileName }: PhotoGalleryProps) {
         </div>
       )}
 
-      {selectedImage && (
+      {selectedPhoto && (
         <div 
           className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
+          onClick={() => setSelectedImageIndex(null)}
         >
           <div className="relative max-w-7xl max-h-[90vh] w-full">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setSelectedImage(null)}
+              onClick={() => setSelectedImageIndex(null)}
               className="absolute -top-12 right-0 text-white hover:bg-white/10 z-10"
             >
               <Icon name="X" size={24} />
             </Button>
+
+            {selectedImageIndex !== null && selectedImageIndex > 0 && (
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex(selectedImageIndex - 1);
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 bg-black/40 backdrop-blur-sm h-16 w-16 rounded-full z-10"
+              >
+                <Icon name="ChevronLeft" size={32} />
+              </Button>
+            )}
+
+            {selectedImageIndex !== null && selectedImageIndex < availablePhotos.length - 1 && (
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex(selectedImageIndex + 1);
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 bg-black/40 backdrop-blur-sm h-16 w-16 rounded-full z-10"
+              >
+                <Icon name="ChevronRight" size={32} />
+              </Button>
+            )}
+
             <div className="bg-slate-900 rounded-lg p-2">
               <img
-                src={selectedImage.url}
-                alt={selectedImage.title}
+                src={selectedPhoto.image}
+                alt={selectedPhoto.title}
                 className="w-full h-auto max-h-[80vh] object-contain rounded"
                 onClick={(e) => e.stopPropagation()}
               />
-              <div className="p-3 border-t border-slate-700 mt-2">
-                <h3 className="text-white font-semibold">{selectedImage.title}</h3>
-                <p className="text-slate-400 text-sm mt-1">{fileName}</p>
+              <div className="p-3 border-t border-slate-700 mt-2 flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-semibold">{selectedPhoto.title}</h3>
+                  <p className="text-slate-400 text-sm mt-1">{fileName}</p>
+                </div>
+                <div className="text-slate-400 text-sm">
+                  {selectedImageIndex !== null && `${selectedImageIndex + 1} / ${availablePhotos.length}`}
+                </div>
               </div>
             </div>
           </div>
