@@ -248,6 +248,19 @@ export default function Index() {
           : m
       )
     );
+    
+    if (selectedMaterial?.id === id) {
+      setSelectedMaterial(prev => 
+        prev ? {
+          ...prev,
+          status,
+          violationCode,
+          violationType: violationCode
+            ? violationCodes.find(v => v.code === violationCode)?.description
+            : undefined,
+        } : null
+      );
+    }
   };
 
   const getStatusColor = (status: Material['status']) => {
