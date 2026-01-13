@@ -170,6 +170,8 @@ export default function Index() {
   const [violationCodes, setViolationCodes] = useState<ViolationCode[]>(getStoredCodes());
   const [sourcePath, setSourcePath] = useState<string>('');
   const [outputPath, setOutputPath] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<Set<Material['status']>>(new Set(['pending', 'violation', 'clean', 'analytics', 'processed']));
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -578,10 +580,69 @@ export default function Index() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-white">Материалы для обработки</h2>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="border-slate-700 text-slate-300">
-                    <Icon name="Filter" size={14} className="mr-1" />
-                    Фильтр
-                  </Button>
+                  <div className="relative">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="border-slate-700 text-slate-300"
+                      onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    >
+                      <Icon name="Filter" size={14} className="mr-1" />
+                      Фильтр ({statusFilter.size})
+                    </Button>
+                    {isFilterOpen && (
+                      <div className="absolute top-full mt-2 right-0 bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl z-10 min-w-[200px]">
+                        <div className="space-y-2">
+                          {[
+                            { status: 'pending' as const, label: 'Ожидает', color: 'bg-gray-400' },
+                            { status: 'violation' as const, label: 'Нарушение', color: 'bg-orange-500' },
+                            { status: 'clean' as const, label: 'Без нарушения', color: 'bg-emerald-500' },
+                            { status: 'analytics' as const, label: 'Аналитика', color: 'bg-violet-500' },
+                            { status: 'processed' as const, label: 'Обработан', color: 'bg-blue-500' },
+                          ].map(({ status, label, color }) => (
+                            <label key={status} className="flex items-center gap-2 cursor-pointer hover:bg-slate-700 p-2 rounded">
+                              <input
+                                type="checkbox"
+                                checked={statusFilter.has(status)}
+                                onChange={(e) => {
+                                  setStatusFilter(prev => {
+                                    const newFilter = new Set(prev);
+                                    if (e.target.checked) {
+                                      newFilter.add(status);
+                                    } else {
+                                      newFilter.delete(status);
+                                    }
+                                    return newFilter;
+                                  });
+                                }}
+                                className="w-4 h-4"
+                              />
+                              <div className={`w-3 h-3 rounded-full ${color}`}></div>
+                              <span className="text-white text-sm">{label}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-slate-700 flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-xs border-slate-700 text-slate-300"
+                            onClick={() => setStatusFilter(new Set(['pending', 'violation', 'clean', 'analytics', 'processed']))}
+                          >
+                            Все
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-xs border-slate-700 text-slate-300"
+                            onClick={() => setStatusFilter(new Set())}
+                          >
+                            Очистить
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <Button size="sm" variant="outline" className="border-slate-700 text-slate-300">
                     <Icon name="ArrowUpDown" size={14} className="mr-1" />
                     Сортировка
@@ -590,7 +651,7 @@ export default function Index() {
               </div>
 
               <div className="space-y-3 max-h-[calc(100vh-320px)] overflow-y-auto pr-2">
-                {materials.map(material => (
+                {materials.filter(m => statusFilter.has(m.status)).map(material => (
                   <div
                     key={material.id}
                     onClick={() => setSelectedMaterial(material)}
