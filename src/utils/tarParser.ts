@@ -39,15 +39,10 @@ export async function parseTarFile(file: File, violationCodes?: ViolationCode[])
         if (violationCodes && violationCodes.length > 0) {
           for (const codeConfig of violationCodes) {
             if (codeConfig.xmlTag) {
-              const regex = new RegExp(`<${codeConfig.xmlTag}>([^<]+)<\/${codeConfig.xmlTag}>`, 'i');
-              const match = text.match(regex);
-              if (match && match[1]) {
-                const xmlValue = match[1].trim();
-                const foundCode = violationCodes.find(c => c.code === xmlValue);
-                if (foundCode) {
-                  violationCode = foundCode.code;
-                  break;
-                }
+              const regex = new RegExp(`<${codeConfig.xmlTag}[^>]*>`, 'i');
+              if (regex.test(text)) {
+                violationCode = codeConfig.code;
+                break;
               }
             }
           }
