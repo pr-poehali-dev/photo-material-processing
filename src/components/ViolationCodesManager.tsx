@@ -31,6 +31,7 @@ export interface PhotoMaterial {
 export interface ViolationCode {
   code: string;
   description: string;
+  xmlTag?: string;
   photoMaterials: PhotoMaterial[];
 }
 
@@ -76,6 +77,7 @@ export default function ViolationCodesManager({
 }: ViolationCodesManagerProps) {
   const [newCode, setNewCode] = useState('');
   const [newDescription, setNewDescription] = useState('');
+  const [newXmlTag, setNewXmlTag] = useState('');
   const [editingCode, setEditingCode] = useState<string | null>(null);
   const [showAddMaterial, setShowAddMaterial] = useState<string | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<{ codeValue: string; materialId: string } | null>(null);
@@ -101,10 +103,12 @@ export default function ViolationCodesManager({
     onCodesChange([...codes, { 
       code: newCode, 
       description: newDescription,
+      xmlTag: newXmlTag.trim() || undefined,
       photoMaterials: [...DEFAULT_PHOTO_MATERIALS]
     }]);
     setNewCode('');
     setNewDescription('');
+    setNewXmlTag('');
   };
 
   const handleDeleteCode = (code: string) => {
@@ -270,12 +274,18 @@ export default function ViolationCodesManager({
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
           <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
             <h3 className="text-sm font-semibold text-white mb-4">Добавить новый код</h3>
-            <div className="grid grid-cols-[120px_1fr_auto] gap-3">
+            <div className="grid grid-cols-[120px_150px_1fr_auto] gap-3">
               <Input
                 placeholder="Код (34)"
                 value={newCode}
                 onChange={(e) => setNewCode(e.target.value)}
                 className="bg-slate-900 border-slate-700 text-white"
+              />
+              <Input
+                placeholder="XML тег"
+                value={newXmlTag}
+                onChange={(e) => setNewXmlTag(e.target.value)}
+                className="bg-slate-900 border-slate-700 text-white font-mono text-sm"
               />
               <Input
                 placeholder="Описание нарушения (КОАП 12.6 - Ремни безопасности)"
@@ -312,6 +322,11 @@ export default function ViolationCodesManager({
                         <div className="bg-amber-500/20 text-amber-400 px-3 py-1 rounded-md font-mono text-sm font-semibold">
                           {item.code}
                         </div>
+                        {item.xmlTag && (
+                          <div className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-mono text-xs">
+                            {item.xmlTag}
+                          </div>
+                        )}
                         <div className="text-slate-300">{item.description}</div>
                       </div>
                       <div className="flex gap-2">

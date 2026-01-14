@@ -95,6 +95,7 @@ const getStoredCodes = (): ViolationCode[] => {
     { 
       code: '34', 
       description: 'КОАП 12.6 - Нарушение правил применения ремней безопасности',
+      xmlTag: 'violation_code',
       photoMaterials: [
         {
           id: 'collage',
