@@ -52,13 +52,6 @@ export async function parseTarFile(file: File, violationCodes?: ViolationCode[])
           }
         }
         
-        if (!violationCode) {
-          const codeMatch = text.match(/<tVAStateCode>(\d+)<\/tVAStateCode>/);
-          if (codeMatch) {
-            violationCode = codeMatch[1];
-          }
-        }
-        
         const timeMatch = text.match(/<timestamp>([^<]+)<\/timestamp>/i);
         if (timeMatch) {
           timestamp = timeMatch[1];
