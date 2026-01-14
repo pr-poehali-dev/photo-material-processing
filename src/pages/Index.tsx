@@ -201,6 +201,7 @@ export default function Index() {
   const [outputPath, setOutputPath] = useState<string>(() => localStorage.getItem(OUTPUT_PATH_KEY) || '');
   const [statusFilter, setStatusFilter] = useState<Set<Material['status']>>(getStoredStatusFilter);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedMaterialIds, setSelectedMaterialIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -481,6 +482,40 @@ export default function Index() {
     }
   };
 
+  const handleToggleSelection = (id: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedMaterialIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    const filteredMaterials = materials.filter(m => statusFilter.has(m.status));
+    setSelectedMaterialIds(new Set(filteredMaterials.map(m => m.id)));
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedMaterialIds(new Set());
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedMaterialIds.size === 0) return;
+    
+    if (confirm(`Удалить выбранные материалы (${selectedMaterialIds.size} шт.)?`)) {
+      setMaterials(prev => prev.filter(m => !selectedMaterialIds.has(m.id)));
+      if (selectedMaterial && selectedMaterialIds.has(selectedMaterial.id)) {
+        setSelectedMaterial(null);
+      }
+      setSelectedMaterialIds(new Set());
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-xl">
@@ -643,7 +678,32 @@ export default function Index() {
           <ResizablePanel defaultSize={65} minSize={40}>
             <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 h-full mr-3 flex flex-col">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Материалы для обработки</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-bold text-white">Материалы для обработки</h2>
+                  {selectedMaterialIds.size > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-slate-400">Выбрано: {selectedMaterialIds.size}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleDeleteSelected}
+                        className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500"
+                      >
+                        <Icon name="Trash2" size={14} className="mr-1" />
+                        Удалить
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleDeselectAll}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <Icon name="X" size={14} className="mr-1" />
+                        Отменить
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <div className="relative">
                     <Button 
@@ -712,6 +772,17 @@ export default function Index() {
                     <Icon name="ArrowUpDown" size={14} className="mr-1" />
                     Сортировка
                   </Button>
+                  {selectedMaterialIds.size === 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleSelectAll}
+                      className="border-slate-700 text-slate-300"
+                    >
+                      <Icon name="CheckSquare" size={14} className="mr-1" />
+                      Выбрать все
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -723,10 +794,21 @@ export default function Index() {
                     className={`p-4 rounded-lg border transition-all cursor-pointer hover-scale ${
                       selectedMaterial?.id === material.id
                         ? 'bg-slate-700/50 border-sky-500'
+                        : selectedMaterialIds.has(material.id)
+                        ? 'bg-blue-900/30 border-blue-500'
                         : 'bg-slate-900/30 border-slate-700 hover:border-slate-600'
                     }`}
                   >
                     <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedMaterialIds.has(material.id)}
+                          onChange={(e) => handleToggleSelection(material.id, e)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer mt-1"
+                        />
+                      </div>
                       <img
                         src={material.preview}
                         alt={material.fileName}
