@@ -270,7 +270,7 @@ export default function Index() {
 
           setIsUploading(true);
           
-          const parsedMetadata = await parseTarFiles(tarFiles);
+          const parsedMetadata = await parseTarFiles(tarFiles, violationCodes);
           
           const newMaterials: Material[] = parsedMetadata.map((metadata, index) => {
             const violationCode = metadata.violationCode;
@@ -345,7 +345,7 @@ export default function Index() {
 
         setIsUploading(true);
         
-        const parsedMetadata = await parseTarFiles(tarFiles);
+        const parsedMetadata = await parseTarFiles(tarFiles, violationCodes);
         
         const newMaterials: Material[] = parsedMetadata.map((metadata, index) => {
           const violationCode = metadata.violationCode;

@@ -1,4 +1,5 @@
 import untar from 'js-untar';
+import { ViolationCode } from '@/components/ViolationCodesManager';
 
 export interface TarImages {
   collage?: string;
@@ -20,7 +21,7 @@ export interface TarMetadata {
   images?: TarImages;
 }
 
-export async function parseTarFile(file: File): Promise<TarMetadata> {
+export async function parseTarFile(file: File, violationCodes?: ViolationCode[]): Promise<TarMetadata> {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const files = await untar(arrayBuffer);
@@ -35,9 +36,27 @@ export async function parseTarFile(file: File): Promise<TarMetadata> {
       if (entry.name.endsWith('.xml') || entry.name.includes('targetinfo')) {
         const text = new TextDecoder('utf-8').decode(entry.buffer);
         
-        const codeMatch = text.match(/<tVAStateCode>(\d+)<\/tVAStateCode>/);
-        if (codeMatch) {
-          violationCode = codeMatch[1];
+        if (violationCodes && violationCodes.length > 0) {
+          for (const codeConfig of violationCodes) {
+            if (codeConfig.xmlTag) {
+              const regex = new RegExp(`<${codeConfig.xmlTag}>([^<]+)<\/${codeConfig.xmlTag}>`, 'i');
+              const match = text.match(regex);
+              if (match && match[1]) {
+                const value = match[1].trim();
+                if (value === codeConfig.code || value.includes(codeConfig.code)) {
+                  violationCode = codeConfig.code;
+                  break;
+                }
+              }
+            }
+          }
+        }
+        
+        if (!violationCode) {
+          const codeMatch = text.match(/<tVAStateCode>(\d+)<\/tVAStateCode>/);
+          if (codeMatch) {
+            violationCode = codeMatch[1];
+          }
         }
         
         const timeMatch = text.match(/<timestamp>([^<]+)<\/timestamp>/i);
@@ -90,7 +109,7 @@ export async function parseTarFile(file: File): Promise<TarMetadata> {
   }
 }
 
-export async function parseTarFiles(files: File[]): Promise<TarMetadata[]> {
-  const promises = files.map(file => parseTarFile(file));
+export async function parseTarFiles(files: File[], violationCodes?: ViolationCode[]): Promise<TarMetadata[]> {
+  const promises = files.map(file => parseTarFile(file, violationCodes));
   return Promise.all(promises);
 }
