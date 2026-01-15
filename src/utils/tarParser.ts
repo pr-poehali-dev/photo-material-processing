@@ -37,20 +37,37 @@ export async function parseTarFile(file: File, violationCodes?: ViolationCode[])
         const text = new TextDecoder('utf-8').decode(entry.buffer);
         
         if (violationCodes && violationCodes.length > 0) {
-          // Ищем <nDirection>1</nDirection> и следующую строку со значением 1
-          const directionMatch = text.match(/<nDirection>1<\/nDirection>\s*\n?\s*<([^>\s]+)[^>]*>1<\/\1>/i);
+          // Ищем <nDirection>1</nDirection>
+          const directionIndex = text.indexOf('<nDirection>1</nDirection>');
           
-          if (directionMatch && directionMatch[1]) {
-            const tagName = directionMatch[1].trim();
+          if (directionIndex !== -1) {
+            // Получаем текст после <nDirection>1</nDirection>
+            const afterDirection = text.substring(directionIndex + '<nDirection>1</nDirection>'.length);
             
-            // Ищем настроенный код с таким XML-тегом
-            const foundCode = violationCodes.find(c => 
-              c.xmlTag && c.xmlTag.toLowerCase() === tagName.toLowerCase()
-            );
+            // Ищем следующий тег с значением 1
+            const nextTagMatch = afterDirection.match(/<([^>\s\/]+)[^>]*>\s*1\s*<\/\1>/i);
             
-            if (foundCode) {
-              violationCode = foundCode.code;
+            if (nextTagMatch && nextTagMatch[1]) {
+              const tagName = nextTagMatch[1].trim();
+              
+              console.log('🔍 Найден тег после nDirection:', tagName);
+              
+              // Ищем настроенный код с таким XML-тегом
+              const foundCode = violationCodes.find(c => 
+                c.xmlTag && c.xmlTag.toLowerCase() === tagName.toLowerCase()
+              );
+              
+              if (foundCode) {
+                violationCode = foundCode.code;
+                console.log('✅ Найден код нарушения:', foundCode.code, foundCode.description);
+              } else {
+                console.log('❌ Код не найден в настройках для тега:', tagName);
+              }
+            } else {
+              console.log('⚠️ Не найден тег со значением 1 после nDirection');
             }
+          } else {
+            console.log('⚠️ Тег <nDirection>1</nDirection> не найден в XML');
           }
         }
         
@@ -96,7 +113,7 @@ export async function parseTarFile(file: File, violationCodes?: ViolationCode[])
       images,
     };
   } catch (error) {
-    console.error('Ошибка парсинга TAR:', error);
+    console.error('❌ Ошибка парсинга TAR:', error);
     return {
       fileName: file.name,
       timestamp: new Date().toLocaleString('ru-RU'),
