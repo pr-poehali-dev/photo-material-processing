@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -507,14 +507,14 @@ export default function Index() {
 
 
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: materials.length,
     violations: materials.filter(m => m.status === 'violation').length,
     clean: materials.filter(m => m.status === 'clean').length,
     analytics: materials.filter(m => m.status === 'analytics').length,
     pending: materials.filter(m => m.status === 'pending').length,
     processed: materials.filter(m => m.status === 'processed').length,
-  };
+  }), [materials]);
 
   const exportProcessedMaterial = async (material: Material) => {
     if (!outputPath) {
