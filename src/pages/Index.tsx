@@ -458,7 +458,7 @@ export default function Index() {
     try {
       const input = document.createElement('input');
       input.type = 'file';
-      input.webkitdirectory = true;
+      input.accept = '.tar';
       input.multiple = true;
       
       input.onchange = async (e: any) => {
@@ -466,7 +466,7 @@ export default function Index() {
         const tarFiles = files.filter(file => file.name.endsWith('.tar'));
         
         if (tarFiles.length === 0) {
-          alert('В выбранной папке не найдено TAR-архивов');
+          alert('Выберите TAR-архивы для загрузки');
           return;
         }
 
