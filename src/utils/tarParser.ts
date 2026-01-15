@@ -37,13 +37,19 @@ export async function parseTarFile(file: File, violationCodes?: ViolationCode[])
         const text = new TextDecoder('utf-8').decode(entry.buffer);
         
         if (violationCodes && violationCodes.length > 0) {
-          for (const codeConfig of violationCodes) {
-            if (codeConfig.xmlTag) {
-              const regex = new RegExp(`<${codeConfig.xmlTag}[^>]*>`, 'i');
-              if (regex.test(text)) {
-                violationCode = codeConfig.code;
-                break;
-              }
+          // Ищем <nDirection>1</nDirection> и следующую строку после неё
+          const directionMatch = text.match(/<nDirection>1<\/nDirection>\s*\n?\s*<([^>\s]+)[^>]*>/i);
+          
+          if (directionMatch && directionMatch[1]) {
+            const nextTagName = directionMatch[1].trim();
+            
+            // Ищем настроенный код с таким XML-тегом
+            const foundCode = violationCodes.find(c => 
+              c.xmlTag && c.xmlTag.toLowerCase() === nextTagName.toLowerCase()
+            );
+            
+            if (foundCode) {
+              violationCode = foundCode.code;
             }
           }
         }
