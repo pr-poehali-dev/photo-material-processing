@@ -79,6 +79,7 @@ export default function ViolationCodesManager({
   const [newDescription, setNewDescription] = useState('');
   const [newXmlTag, setNewXmlTag] = useState('');
   const [editingCode, setEditingCode] = useState<string | null>(null);
+  const [editingCodeData, setEditingCodeData] = useState<{ code: string; description: string; xmlTag: string } | null>(null);
   const [showAddMaterial, setShowAddMaterial] = useState<string | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<{ codeValue: string; materialId: string } | null>(null);
   const [newMaterial, setNewMaterial] = useState<Partial<PhotoMaterial>>({
@@ -113,6 +114,38 @@ export default function ViolationCodesManager({
 
   const handleDeleteCode = (code: string) => {
     onCodesChange(codes.filter(c => c.code !== code));
+  };
+
+  const handleEditCode = (codeValue: string) => {
+    const code = codes.find(c => c.code === codeValue);
+    if (code) {
+      setEditingCodeData({
+        code: code.code,
+        description: code.description,
+        xmlTag: code.xmlTag || '',
+      });
+    }
+  };
+
+  const handleSaveEditCode = () => {
+    if (!editingCodeData || !editingCodeData.code.trim() || !editingCodeData.description.trim()) {
+      alert('Заполните код и описание нарушения');
+      return;
+    }
+
+    const updatedCodes = codes.map(c => {
+      if (c.code === editingCodeData.code) {
+        return {
+          ...c,
+          description: editingCodeData.description,
+          xmlTag: editingCodeData.xmlTag.trim() || undefined,
+        };
+      }
+      return c;
+    });
+
+    onCodesChange(updatedCodes);
+    setEditingCodeData(null);
   };
 
   const handleAddMaterial = (codeValue: string) => {
@@ -317,37 +350,89 @@ export default function ViolationCodesManager({
                     key={item.code}
                     className="bg-slate-800/50 rounded-lg border border-slate-700 overflow-hidden"
                   >
-                    <div className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="bg-amber-500/20 text-amber-400 px-3 py-1 rounded-md font-mono text-sm font-semibold">
-                          {item.code}
+                    {editingCodeData?.code === item.code ? (
+                      <div className="p-4 bg-slate-800/50 border-b border-slate-700">
+                        <h4 className="text-sm font-semibold text-white mb-3">Редактирование кода</h4>
+                        <div className="grid grid-cols-[120px_150px_1fr] gap-3 mb-3">
+                          <Input
+                            placeholder="Код"
+                            value={editingCodeData.code}
+                            disabled
+                            className="bg-slate-900/50 border-slate-700 text-slate-500 cursor-not-allowed"
+                          />
+                          <Input
+                            placeholder="XML тег"
+                            value={editingCodeData.xmlTag}
+                            onChange={(e) => setEditingCodeData({ ...editingCodeData, xmlTag: e.target.value })}
+                            className="bg-slate-900 border-slate-700 text-white font-mono text-sm"
+                          />
+                          <Input
+                            placeholder="Описание нарушения"
+                            value={editingCodeData.description}
+                            onChange={(e) => setEditingCodeData({ ...editingCodeData, description: e.target.value })}
+                            className="bg-slate-900 border-slate-700 text-white"
+                          />
                         </div>
-                        {item.xmlTag && (
-                          <div className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-mono text-xs">
-                            {item.xmlTag}
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingCodeData(null)}
+                            className="text-slate-400 hover:text-white"
+                          >
+                            Отмена
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleSaveEditCode}
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700"
+                          >
+                            <Icon name="Check" size={16} className="mr-2" />
+                            Сохранить
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="bg-amber-500/20 text-amber-400 px-3 py-1 rounded-md font-mono text-sm font-semibold">
+                            {item.code}
                           </div>
-                        )}
-                        <div className="text-slate-300">{item.description}</div>
+                          {item.xmlTag && (
+                            <div className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-mono text-xs">
+                              {item.xmlTag}
+                            </div>
+                          )}
+                          <div className="text-slate-300">{item.description}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditCode(item.code)}
+                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                          >
+                            <Icon name="Edit2" size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingCode(editingCode === item.code ? null : item.code)}
+                            className="text-slate-400 hover:text-white hover:bg-slate-700/50"
+                          >
+                            <Icon name={editingCode === item.code ? "ChevronUp" : "Settings"} size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteCode(item.code)}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingCode(editingCode === item.code ? null : item.code)}
-                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                        >
-                          <Icon name={editingCode === item.code ? "ChevronUp" : "Settings"} size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteCode(item.code)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                        >
-                          <Icon name="Trash2" size={16} />
-                        </Button>
-                      </div>
-                    </div>
+                    )}
 
                     {editingCode === item.code && (
                       <div className="p-4 border-t border-slate-700 bg-slate-900/50 space-y-3">
