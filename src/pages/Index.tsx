@@ -294,9 +294,10 @@ const getStoredCodes = (): ViolationCode[] => {
 
 const getStoredMaterials = (): Material[] => {
   try {
-    const stored = localStorage.getItem(MATERIALS_KEY);
+    const stored = localStorage.getItem('materials');
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      return parsed.length > 0 ? parsed : mockMaterials;
     }
   } catch (error) {
     console.error('Ошибка загрузки материалов:', error);
@@ -545,20 +546,24 @@ export default function Index() {
   const updateMaterialStatus = (id: string, status: Material['status'], violationCode?: string) => {
     const material = materials.find(m => m.id === id);
     
-    setMaterials(prev =>
-      prev.map(m =>
-        m.id === id
-          ? {
-              ...m,
-              status,
-              violationCode,
-              violationType: violationCode
-                ? violationCodes.find(v => v.code === violationCode)?.description
-                : undefined,
-            }
-          : m
-      )
+    const updatedMaterials = materials.map(m =>
+      m.id === id
+        ? {
+            ...m,
+            status,
+            violationCode,
+            violationType: violationCode
+              ? violationCodes.find(v => v.code === violationCode)?.description
+              : undefined,
+          }
+        : m
     );
+    
+    setMaterials(updatedMaterials);
+    localStorage.setItem('materials', JSON.stringify(updatedMaterials.map(m => ({
+      ...m,
+      tarFile: undefined,
+    }))));
     
     if (selectedMaterial?.id === id) {
       setSelectedMaterial(prev => 
