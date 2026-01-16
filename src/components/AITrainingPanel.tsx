@@ -316,41 +316,55 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                 <h3 className="text-lg font-semibold text-white">
                   Размеченные образцы ({trainingData.length})
                 </h3>
-                <Button
-                  onClick={async () => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*,.tar';
-                    input.multiple = true;
-                    input.onchange = async (e: any) => {
-                      const files = Array.from(e.target.files as FileList);
-                      if (files.length > 0) {
-                        setIsUploading(true);
-                        // TODO: Implement upload logic
-                        setTimeout(() => {
-                          setIsUploading(false);
-                          alert(`Загружено ${files.length} файлов для разметки`);
-                          loadTrainingData();
-                        }, 1000);
-                      }
-                    };
-                    input.click();
-                  }}
-                  disabled={isUploading}
-                  className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
-                >
-                  <Icon name={isUploading ? 'Loader2' : 'Upload'} size={16} className={`mr-2 ${isUploading ? 'animate-spin' : ''}`} />
-                  {isUploading ? 'Загрузка...' : 'Загрузить образцы'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={async () => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*,.tar';
+                      input.multiple = true;
+                      input.onchange = async (e: any) => {
+                        const files = Array.from(e.target.files as FileList);
+                        if (files.length > 0) {
+                          setIsUploading(true);
+                          // TODO: Implement upload logic
+                          setTimeout(() => {
+                            setIsUploading(false);
+                            alert(`Загружено ${files.length} файлов для разметки`);
+                            loadTrainingData();
+                          }, 1000);
+                        }
+                      };
+                      input.click();
+                    }}
+                    disabled={isUploading}
+                    className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
+                  >
+                    <Icon name={isUploading ? 'Loader2' : 'Upload'} size={16} className={`mr-2 ${isUploading ? 'animate-spin' : ''}`} />
+                    {isUploading ? 'Загрузка...' : 'Загрузить образцы'}
+                  </Button>
+                </div>
               </div>
               <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
                 {trainingData.length === 0 ? (
                   <div className="text-center py-12">
                     <Icon name="FolderOpen" size={48} className="mx-auto text-slate-600 mb-4" />
                     <p className="text-slate-400 mb-2">Нет размеченных образцов</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 mb-4">
                       Загрузите изображения или TAR-архивы для разметки и обучения модели
                     </p>
+                    <div className="flex items-start gap-2 text-sm text-blue-400 bg-blue-500/10 border border-blue-500/30 rounded p-4 max-w-md mx-auto">
+                      <Icon name="Info" size={16} className="mt-0.5 flex-shrink-0" />
+                      <div className="text-left">
+                        <p className="font-medium mb-1">Как начать:</p>
+                        <ol className="text-xs space-y-1 text-slate-300">
+                          <li>1. Нажмите "Загрузить образцы" выше</li>
+                          <li>2. Выберите изображения с нарушениями</li>
+                          <li>3. Нажмите "Разметить" на каждом образце</li>
+                          <li>4. Выделите объекты и укажите код нарушения</li>
+                        </ol>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   trainingData.map((item) => (
@@ -383,18 +397,20 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                         </div>
                         <div className="flex gap-2">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => setSelectedSampleForMarkup(item)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
-                            title="Разметить"
+                            className="border-purple-500/50 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 hover:border-purple-500"
+                            title="Разметить нарушение"
                           >
-                            <Icon name="Pencil" size={16} />
+                            <Icon name="Pencil" size={14} className="mr-1" />
+                            Разметить
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            title="Удалить"
                           >
                             <Icon name="Trash2" size={16} />
                           </Button>
