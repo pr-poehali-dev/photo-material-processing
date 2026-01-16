@@ -321,18 +321,42 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                     onClick={async () => {
                       const input = document.createElement('input');
                       input.type = 'file';
-                      input.accept = 'image/*,.tar';
+                      input.accept = 'image/*';
                       input.multiple = true;
                       input.onchange = async (e: any) => {
                         const files = Array.from(e.target.files as FileList);
                         if (files.length > 0) {
                           setIsUploading(true);
-                          // TODO: Implement upload logic
-                          setTimeout(() => {
+                          
+                          try {
+                            let successCount = 0;
+                            for (const file of files) {
+                              try {
+                                const response = await fetch('https://functions.poehali.dev/f988916a-a0b1-4821-8408-f7732ad49548', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    action: 'upload-sample',
+                                    file_name: file.name
+                                  })
+                                });
+                                
+                                if (response.ok) {
+                                  successCount++;
+                                }
+                              } catch (error) {
+                                console.error(`Ошибка загрузки ${file.name}:`, error);
+                              }
+                            }
+                            
+                            await loadTrainingData();
+                            alert(`Загружено ${successCount} из ${files.length} файлов`);
+                          } catch (error) {
+                            console.error('Ошибка загрузки файлов:', error);
+                            alert('Ошибка при загрузке файлов');
+                          } finally {
                             setIsUploading(false);
-                            alert(`Загружено ${files.length} файлов для разметки`);
-                            loadTrainingData();
-                          }, 1000);
+                          }
                         }
                       };
                       input.click();
@@ -349,19 +373,22 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                 {trainingData.length === 0 ? (
                   <div className="text-center py-12">
                     <Icon name="FolderOpen" size={48} className="mx-auto text-slate-600 mb-4" />
-                    <p className="text-slate-400 mb-2">Нет размеченных образцов</p>
+                    <p className="text-slate-400 mb-2 text-lg font-semibold">Нет загруженных образцов</p>
                     <p className="text-xs text-slate-500 mb-4">
-                      Загрузите изображения или TAR-архивы для разметки и обучения модели
+                      Загрузите изображения нарушений для разметки и обучения ИИ модели
                     </p>
-                    <div className="flex items-start gap-2 text-sm text-blue-400 bg-blue-500/10 border border-blue-500/30 rounded p-4 max-w-md mx-auto">
+                    <div className="flex items-start gap-2 text-sm text-blue-400 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 max-w-md mx-auto">
                       <Icon name="Info" size={16} className="mt-0.5 flex-shrink-0" />
                       <div className="text-left">
-                        <p className="font-medium mb-1">Как начать:</p>
-                        <ol className="text-xs space-y-1 text-slate-300">
-                          <li>1. Нажмите "Загрузить образцы" выше</li>
-                          <li>2. Выберите изображения с нарушениями</li>
-                          <li>3. Нажмите "Разметить" на каждом образце</li>
+                        <p className="font-medium mb-2">Как начать работу:</p>
+                        <ol className="text-xs space-y-1.5 text-slate-300">
+                          <li>1. Нажмите кнопку "Загрузить образцы" выше</li>
+                          <li>2. Выберите изображения с нарушениями (JPG, PNG)</li>
+                          <li>3. После загрузки нажмите "Разметить" на образце</li>
                           <li>4. Выделите объекты и укажите код нарушения</li>
+                          <li>5. Отметьте "Использовать для обучения ИИ"</li>
+                          <li>6. Соберите минимум 10 размеченных образцов</li>
+                          <li>7. Запустите обучение модели на вкладке выше</li>
                         </ol>
                       </div>
                     </div>
@@ -378,11 +405,17 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                             <Icon name="FileImage" size={16} className="text-purple-400 flex-shrink-0" />
                             <p className="text-sm font-medium text-white truncate">{item.file_name}</p>
                           </div>
-                          <p className="text-xs text-slate-400 mb-2">{item.notes || 'Без примечаний'}</p>
+                          <p className="text-xs text-slate-400 mb-2">{item.notes || 'Требуется разметка'}</p>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-amber-400 border-amber-400 text-xs">
-                              {item.violation_code}
-                            </Badge>
+                            {item.violation_code ? (
+                              <Badge variant="outline" className="text-amber-400 border-amber-400 text-xs">
+                                {item.violation_code}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-slate-500 border-slate-600 text-xs">
+                                Не размечен
+                              </Badge>
+                            )}
                             <div className="flex items-center gap-1 text-slate-400">
                               <Icon name="Tag" size={12} />
                               <span className="text-xs">{item.regions_count} регионов</span>

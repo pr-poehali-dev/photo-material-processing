@@ -53,14 +53,13 @@ def handler(event: dict, context) -> dict:
                     SELECT 
                         m.id as material_id,
                         m.file_name,
-                        vm.violation_code,
-                        vm.notes,
-                        vm.is_training_data,
+                        COALESCE(vm.violation_code, '') as violation_code,
+                        COALESCE(vm.notes, '') as notes,
+                        COALESCE(vm.is_training_data, FALSE) as is_training_data,
                         COUNT(mr.id) as regions_count
                     FROM materials m
-                    JOIN violation_markups vm ON m.id = vm.material_id
+                    LEFT JOIN violation_markups vm ON m.id = vm.material_id
                     LEFT JOIN markup_regions mr ON m.id = mr.material_id
-                    WHERE vm.is_training_data = TRUE
                     GROUP BY m.id, m.file_name, vm.violation_code, vm.notes, vm.is_training_data
                     ORDER BY m.created_at DESC
                 ''')
@@ -202,6 +201,36 @@ def handler(event: dict, context) -> dict:
                             'recall': round(min(recall, 0.99), 4),
                             'f1_score': round(min(f1, 0.98), 4)
                         }
+                    })
+                }
+            
+            elif action == 'upload-sample':
+                file_name = data.get('file_name')
+                image_data = data.get('image_data')
+                
+                if not file_name:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'file_name is required'})
+                    }
+                
+                cursor.execute('''
+                    INSERT INTO materials (file_name, status)
+                    VALUES (%s, %s)
+                    RETURNING id
+                ''', (file_name, 'pending'))
+                
+                material_id = cursor.fetchone()['id']
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'material_id': material_id,
+                        'file_name': file_name
                     })
                 }
             
