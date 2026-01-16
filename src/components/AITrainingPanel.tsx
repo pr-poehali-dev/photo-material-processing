@@ -43,7 +43,6 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
   const [activeTab, setActiveTab] = useState<'training' | 'samples'>('training');
   const [isUploading, setIsUploading] = useState(false);
   const [selectedSampleForMarkup, setSelectedSampleForMarkup] = useState<TrainingDataItem | null>(null);
-  const [selectedSampleForMarkup, setSelectedSampleForMarkup] = useState<TrainingDataItem | null>(null);
 
   const loadMetrics = async () => {
     try {
@@ -464,8 +463,6 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
           onCancel={() => setSelectedSampleForMarkup(null)}
         />
       )}
-        </div>
-      </Card>
     </div>
   );
 };
