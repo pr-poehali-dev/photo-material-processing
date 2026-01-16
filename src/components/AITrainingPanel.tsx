@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
+import ViolationMarkup from '@/components/ViolationMarkup';
+import { ViolationCode } from '@/components/ViolationCodesManager';
 
 interface AIMetrics {
   id: number;
@@ -29,9 +31,10 @@ interface TrainingDataItem {
 interface AITrainingPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  violationCodes: ViolationCode[];
 }
 
-const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
+const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelProps) => {
   const [metrics, setMetrics] = useState<AIMetrics[]>([]);
   const [trainingData, setTrainingData] = useState<TrainingDataItem[]>([]);
   const [datasetStats, setDatasetStats] = useState<any>(null);
@@ -39,6 +42,8 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [activeTab, setActiveTab] = useState<'training' | 'samples'>('training');
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedSampleForMarkup, setSelectedSampleForMarkup] = useState<TrainingDataItem | null>(null);
+  const [selectedSampleForMarkup, setSelectedSampleForMarkup] = useState<TrainingDataItem | null>(null);
 
   const loadMetrics = async () => {
     try {
@@ -381,16 +386,11 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                          >
-                            <Icon name="Eye" size={16} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                            onClick={() => setSelectedSampleForMarkup(item)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                            title="Разметить"
                           >
-                            <Icon name="Edit" size={16} />
+                            <Icon name="Pencil" size={16} />
                           </Button>
                           <Button
                             variant="ghost"
@@ -430,6 +430,40 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
               )}
             </Card>
           )}
+        </div>
+      </Card>
+
+      {selectedSampleForMarkup && (
+        <ViolationMarkup
+          materialId={selectedSampleForMarkup.material_id}
+          imageUrl={`https://placeholder-image-url/${selectedSampleForMarkup.file_name}`}
+          violationCodes={violationCodes}
+          onSave={async (markup) => {
+            try {
+              const response = await fetch('https://functions.poehali.dev/9128cf27-3d45-4ac1-b0a2-0c2935594a9e', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  material_id: markup.materialId,
+                  violation_code: markup.violationCode,
+                  regions: markup.regions,
+                  notes: markup.notes,
+                  is_training_data: markup.isTrainingData
+                })
+              });
+              if (response.ok) {
+                alert('Разметка сохранена!');
+                setSelectedSampleForMarkup(null);
+                await loadTrainingData();
+              }
+            } catch (error) {
+              console.error('Ошибка сохранения разметки:', error);
+              alert('Ошибка сохранения');
+            }
+          }}
+          onCancel={() => setSelectedSampleForMarkup(null)}
+        />
+      )}
         </div>
       </Card>
     </div>

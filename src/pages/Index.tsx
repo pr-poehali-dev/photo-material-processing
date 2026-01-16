@@ -1422,6 +1422,7 @@ export default function Index() {
       <AITrainingPanel
         isOpen={isAITrainingOpen}
         onClose={() => setIsAITrainingOpen(false)}
+        violationCodes={violationCodes}
       />
     </div>
   );
