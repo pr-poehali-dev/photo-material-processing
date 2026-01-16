@@ -37,6 +37,8 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
   const [datasetStats, setDatasetStats] = useState<any>(null);
   const [isTraining, setIsTraining] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState(0);
+  const [activeTab, setActiveTab] = useState<'training' | 'samples'>('training');
+  const [isUploading, setIsUploading] = useState(false);
 
   const loadMetrics = async () => {
     try {
@@ -175,135 +177,259 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
             </Card>
           </div>
 
-          <Card className="bg-slate-900/50 border-slate-700 p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Обучение модели</h3>
-              <Button
-                onClick={trainModel}
-                disabled={isTraining || (datasetStats?.training_samples || 0) < 10}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700"
-              >
-                <Icon name="PlayCircle" size={16} className="mr-2" />
-                {isTraining ? 'Обучается...' : 'Запустить обучение'}
-              </Button>
-            </div>
 
-            {isTraining && (
-              <div className="space-y-2">
-                <Progress value={trainingProgress} className="h-2" />
-                <p className="text-sm text-slate-400 text-center">
-                  Обучение модели: {trainingProgress}%
-                </p>
-              </div>
-            )}
 
-            {!isTraining && (datasetStats?.training_samples || 0) < 10 && (
-              <div className="flex items-start gap-2 text-sm text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-3">
-                <Icon name="AlertTriangle" size={16} className="mt-0.5 flex-shrink-0" />
-                <p>
-                  Недостаточно данных для обучения. Необходимо минимум 10 размеченных образцов.
-                  Текущее количество: {datasetStats?.training_samples || 0}
-                </p>
-              </div>
-            )}
-          </Card>
+          <div className="flex gap-2 border-b border-slate-700 mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => setActiveTab('training')}
+              className={`px-6 py-3 rounded-t-lg border-b-2 transition-colors ${
+                activeTab === 'training'
+                  ? 'border-purple-500 text-purple-400 bg-slate-800/50'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              <Icon name="Brain" size={18} className="mr-2" />
+              Обучение модели
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setActiveTab('samples')}
+              className={`px-6 py-3 rounded-t-lg border-b-2 transition-colors ${
+                activeTab === 'samples'
+                  ? 'border-purple-500 text-purple-400 bg-slate-800/50'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              <Icon name="Database" size={18} className="mr-2" />
+              Размеченные образцы
+            </Button>
+          </div>
 
-          <Card className="bg-slate-900/50 border-slate-700 p-4">
-            <h3 className="text-lg font-semibold text-white mb-4">История обучения</h3>
-            <div className="space-y-3 max-h-64 overflow-y-auto">
-              {metrics.length === 0 ? (
-                <p className="text-center text-slate-400 py-8">
-                  Модель ещё не обучалась
-                </p>
-              ) : (
-                metrics.map((metric) => (
-                  <Card key={metric.id} className="bg-slate-800/50 border-slate-700 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <Badge variant="outline" className="text-purple-400 border-purple-400">
-                          {metric.model_version}
-                        </Badge>
-                        <p className="text-xs text-slate-400 mt-1">
-                          {new Date(metric.training_date).toLocaleString('ru-RU')}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-slate-400">Образцов</p>
-                        <p className="text-lg font-semibold text-white">
-                          {metric.training_samples_count}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-3">
-                      <div>
-                        <p className="text-xs text-slate-400">Точность</p>
-                        <p className="text-sm font-semibold text-green-400">
-                          {(metric.accuracy * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400">Precision</p>
-                        <p className="text-sm font-semibold text-blue-400">
-                          {(metric.precision_score * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400">Recall</p>
-                        <p className="text-sm font-semibold text-purple-400">
-                          {(metric.recall_score * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400">F1-Score</p>
-                        <p className="text-sm font-semibold text-amber-400">
-                          {(metric.f1_score * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                    </div>
-
-                    {metric.notes && (
-                      <p className="text-xs text-slate-400 mt-2">{metric.notes}</p>
-                    )}
-                  </Card>
-                ))
-              )}
-            </div>
-          </Card>
-
-          <Card className="bg-slate-900/50 border-slate-700 p-4">
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Обучающие данные ({trainingData.length})
-            </h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {trainingData.length === 0 ? (
-                <p className="text-center text-slate-400 py-8">
-                  Нет размеченных данных для обучения
-                </p>
-              ) : (
-                trainingData.map((item) => (
-                  <div
-                    key={item.material_id}
-                    className="flex items-center justify-between p-3 bg-slate-800/50 border border-slate-700 rounded"
+          {activeTab === 'training' && (
+            <>
+              <Card className="bg-slate-900/50 border-slate-700 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white">Обучение модели</h3>
+                  <Button
+                    onClick={trainModel}
+                    disabled={isTraining || (datasetStats?.training_samples || 0) < 10}
+                    className="bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700"
                   >
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-white">{item.file_name}</p>
-                      <p className="text-xs text-slate-400">{item.notes || 'Без примечаний'}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="text-amber-400 border-amber-400">
-                        {item.violation_code}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-slate-400">
-                        <Icon name="Tag" size={14} />
-                        <span className="text-xs">{item.regions_count}</span>
+                    <Icon name="PlayCircle" size={16} className="mr-2" />
+                    {isTraining ? 'Обучается...' : 'Запустить обучение'}
+                  </Button>
+                </div>
+
+                {isTraining && (
+                  <div className="space-y-2">
+                    <Progress value={trainingProgress} className="h-2" />
+                    <p className="text-sm text-slate-400 text-center">
+                      Обучение модели: {trainingProgress}%
+                    </p>
+                  </div>
+                )}
+
+                {!isTraining && (datasetStats?.training_samples || 0) < 10 && (
+                  <div className="flex items-start gap-2 text-sm text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-3">
+                    <Icon name="AlertTriangle" size={16} className="mt-0.5 flex-shrink-0" />
+                    <p>
+                      Недостаточно данных для обучения. Необходимо минимум 10 размеченных образцов.
+                      Текущее количество: {datasetStats?.training_samples || 0}
+                    </p>
+                  </div>
+                )}
+              </Card>
+
+              <Card className="bg-slate-900/50 border-slate-700 p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">История обучения</h3>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {metrics.length === 0 ? (
+                    <p className="text-center text-slate-400 py-8">
+                      Модель ещё не обучалась
+                    </p>
+                  ) : (
+                    metrics.map((metric) => (
+                      <Card key={metric.id} className="bg-slate-800/50 border-slate-700 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <Badge variant="outline" className="text-purple-400 border-purple-400">
+                              {metric.model_version}
+                            </Badge>
+                            <p className="text-xs text-slate-400 mt-1">
+                              {new Date(metric.training_date).toLocaleString('ru-RU')}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-slate-400">Образцов</p>
+                            <p className="text-lg font-semibold text-white">
+                              {metric.training_samples_count}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-3">
+                          <div>
+                            <p className="text-xs text-slate-400">Точность</p>
+                            <p className="text-sm font-semibold text-green-400">
+                              {(metric.accuracy * 100).toFixed(1)}%
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400">Precision</p>
+                            <p className="text-sm font-semibold text-blue-400">
+                              {(metric.precision_score * 100).toFixed(1)}%
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400">Recall</p>
+                            <p className="text-sm font-semibold text-purple-400">
+                              {(metric.recall_score * 100).toFixed(1)}%
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400">F1-Score</p>
+                            <p className="text-sm font-semibold text-amber-400">
+                              {(metric.f1_score * 100).toFixed(1)}%
+                            </p>
+                          </div>
+                        </div>
+
+                        {metric.notes && (
+                          <p className="text-xs text-slate-400 mt-2">{metric.notes}</p>
+                        )}
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </Card>
+            </>
+          )}
+
+          {activeTab === 'samples' && (
+            <Card className="bg-slate-900/50 border-slate-700 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-white">
+                  Размеченные образцы ({trainingData.length})
+                </h3>
+                <Button
+                  onClick={async () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*,.tar';
+                    input.multiple = true;
+                    input.onchange = async (e: any) => {
+                      const files = Array.from(e.target.files as FileList);
+                      if (files.length > 0) {
+                        setIsUploading(true);
+                        // TODO: Implement upload logic
+                        setTimeout(() => {
+                          setIsUploading(false);
+                          alert(`Загружено ${files.length} файлов для разметки`);
+                          loadTrainingData();
+                        }, 1000);
+                      }
+                    };
+                    input.click();
+                  }}
+                  disabled={isUploading}
+                  className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
+                >
+                  <Icon name={isUploading ? 'Loader2' : 'Upload'} size={16} className={`mr-2 ${isUploading ? 'animate-spin' : ''}`} />
+                  {isUploading ? 'Загрузка...' : 'Загрузить образцы'}
+                </Button>
+              </div>
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                {trainingData.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Icon name="FolderOpen" size={48} className="mx-auto text-slate-600 mb-4" />
+                    <p className="text-slate-400 mb-2">Нет размеченных образцов</p>
+                    <p className="text-xs text-slate-500">
+                      Загрузите изображения или TAR-архивы для разметки и обучения модели
+                    </p>
+                  </div>
+                ) : (
+                  trainingData.map((item) => (
+                    <div
+                      key={item.material_id}
+                      className="group p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:border-purple-500/50 hover:bg-slate-800 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Icon name="FileImage" size={16} className="text-purple-400 flex-shrink-0" />
+                            <p className="text-sm font-medium text-white truncate">{item.file_name}</p>
+                          </div>
+                          <p className="text-xs text-slate-400 mb-2">{item.notes || 'Без примечаний'}</p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-amber-400 border-amber-400 text-xs">
+                              {item.violation_code}
+                            </Badge>
+                            <div className="flex items-center gap-1 text-slate-400">
+                              <Icon name="Tag" size={12} />
+                              <span className="text-xs">{item.regions_count} регионов</span>
+                            </div>
+                            {item.is_training_data && (
+                              <Badge variant="outline" className="text-green-400 border-green-400 text-xs">
+                                <Icon name="CheckCircle" size={10} className="mr-1" />
+                                Для обучения
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                          >
+                            <Icon name="Eye" size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                          >
+                            <Icon name="Edit" size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
+                        </div>
                       </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {trainingData.length > 0 && (
+                <div className="mt-6 pt-4 border-t border-slate-700">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="p-3 bg-slate-800/50 rounded-lg">
+                      <p className="text-xs text-slate-400 mb-1">Всего образцов</p>
+                      <p className="text-2xl font-bold text-white">{trainingData.length}</p>
+                    </div>
+                    <div className="p-3 bg-slate-800/50 rounded-lg">
+                      <p className="text-xs text-slate-400 mb-1">Регионов</p>
+                      <p className="text-2xl font-bold text-purple-400">
+                        {trainingData.reduce((sum, item) => sum + item.regions_count, 0)}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-slate-800/50 rounded-lg">
+                      <p className="text-xs text-slate-400 mb-1">Для обучения</p>
+                      <p className="text-2xl font-bold text-green-400">
+                        {trainingData.filter(item => item.is_training_data).length}
+                      </p>
                     </div>
                   </div>
-                ))
+                </div>
               )}
-            </div>
-          </Card>
+            </Card>
+          )}
         </div>
       </Card>
     </div>
