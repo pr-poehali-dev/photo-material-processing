@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
+import AccuracyChart from '@/components/AccuracyChart';
 
 interface AccuracyStats {
   total_predictions: number;
@@ -10,6 +11,12 @@ interface AccuracyStats {
   accuracy_rate: number;
   latest_model_accuracy: number;
   improvement_rate: number;
+}
+
+interface ChartDataPoint {
+  date: string;
+  accuracy: number;
+  predictions: number;
 }
 
 interface AIAccuracyStatsProps {
@@ -25,6 +32,7 @@ const AIAccuracyStats = ({ refreshTrigger }: AIAccuracyStatsProps) => {
     latest_model_accuracy: 0,
     improvement_rate: 0
   });
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadStats = async () => {
@@ -37,6 +45,9 @@ const AIAccuracyStats = ({ refreshTrigger }: AIAccuracyStatsProps) => {
 
       const statsResponse = await fetch('https://functions.poehali.dev/f988916a-a0b1-4821-8408-f7732ad49548?action=dataset-stats');
       const statsData = await statsResponse.json();
+
+      const historyResponse = await fetch('https://functions.poehali.dev/f988916a-a0b1-4821-8408-f7732ad49548?action=feedback-history');
+      const historyData = await historyResponse.json();
 
       const mockCorrect = Math.floor(Math.random() * 20) + 10;
       const mockIncorrect = Math.floor(Math.random() * 5);
@@ -53,6 +64,10 @@ const AIAccuracyStats = ({ refreshTrigger }: AIAccuracyStatsProps) => {
         latest_model_accuracy: modelAccuracy,
         improvement_rate: improvement
       });
+
+      if (historyData.history && Array.isArray(historyData.history)) {
+        setChartData(historyData.history);
+      }
     } catch (error) {
       console.error('Ошибка загрузки статистики:', error);
     } finally {
@@ -156,6 +171,16 @@ const AIAccuracyStats = ({ refreshTrigger }: AIAccuracyStatsProps) => {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="pt-6 border-t border-slate-700">
+          <div className="mb-4">
+            <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+              <Icon name="TrendingUp" size={20} className="text-purple-400" />
+              Динамика улучшения модели
+            </h4>
+            <AccuracyChart data={chartData} />
+          </div>
         </div>
 
         <div className="pt-4 border-t border-slate-700">

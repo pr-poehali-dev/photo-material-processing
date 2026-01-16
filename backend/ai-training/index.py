@@ -87,6 +87,43 @@ def handler(event: dict, context) -> dict:
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'body': json.dumps({'stats': dict(stats)}, default=str)
                 }
+            
+            elif action == 'feedback-history':
+                cursor.execute('''
+                    WITH daily_feedback AS (
+                        SELECT 
+                            DATE(feedback_date) as feedback_day,
+                            COUNT(*) as total,
+                            SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct
+                        FROM ai_feedback
+                        GROUP BY DATE(feedback_date)
+                        ORDER BY feedback_day DESC
+                        LIMIT 30
+                    ),
+                    daily_metrics AS (
+                        SELECT 
+                            DATE(training_date) as training_day,
+                            accuracy * 100 as model_accuracy
+                        FROM ai_training_metrics
+                        ORDER BY training_date DESC
+                    )
+                    SELECT 
+                        TO_CHAR(df.feedback_day, 'DD.MM') as date,
+                        CASE 
+                            WHEN df.total > 0 THEN ROUND((df.correct::numeric / df.total * 100)::numeric, 1)
+                            ELSE 0 
+                        END as accuracy,
+                        df.total as predictions
+                    FROM daily_feedback df
+                    ORDER BY df.feedback_day ASC
+                ''')
+                history = cursor.fetchall()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'history': [dict(h) for h in history]}, default=str)
+                }
         
         elif method == 'POST':
             data = json.loads(event.get('body', '{}'))
