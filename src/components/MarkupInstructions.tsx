@@ -420,6 +420,164 @@ const MarkupInstructions = ({ onClose }: MarkupInstructionsProps) => {
             </div>
           </Card>
 
+          {/* Частые ошибки при разметке */}
+          <Card className="p-6 bg-gradient-to-br from-red-900/20 to-orange-900/20 border-red-700">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-red-500/20 rounded-lg">
+                <Icon name="AlertTriangle" size={20} className="text-red-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-lg font-semibold text-white mb-3">Частые ошибки при разметке</h4>
+                <p className="text-slate-300 text-sm mb-4">
+                  Избегайте этих распространённых ошибок для повышения качества обучающих данных
+                </p>
+
+                <div className="space-y-4">
+                  {/* Ошибка 1: Слишком большая область */}
+                  <div className="border border-red-700/50 rounded-lg overflow-hidden bg-slate-900/30">
+                    <div className="p-3 bg-red-900/20 border-b border-red-700/30">
+                      <p className="text-white font-medium text-sm flex items-center gap-2">
+                        <Icon name="X" size={14} className="text-red-400" />
+                        Ошибка №1: Слишком большая область с лишним фоном
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-0">
+                      <div className="border-r border-red-700/30">
+                        <img 
+                          src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/59190b1f-d76c-481c-9faf-9cb21f6e8257.jpg" 
+                          alt="Неправильно - много фона"
+                          className="w-full h-40 object-cover"
+                        />
+                        <div className="p-2 bg-red-900/30">
+                          <p className="text-xs text-red-300 flex items-center gap-1">
+                            <Icon name="X" size={10} />
+                            Неправильно
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <img 
+                          src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/493f87c1-8e1c-4960-acd6-19b89ef9ba03.jpg" 
+                          alt="Правильно - плотно"
+                          className="w-full h-40 object-cover"
+                        />
+                        <div className="p-2 bg-green-900/30">
+                          <p className="text-xs text-green-300 flex items-center gap-1">
+                            <Icon name="Check" size={10} />
+                            Правильно
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-3 space-y-1">
+                      <p className="text-sm text-slate-300">
+                        <strong className="text-red-400">Проблема:</strong> Область захватывает много фона вокруг объекта
+                      </p>
+                      <p className="text-sm text-slate-300">
+                        <strong className="text-green-400">Решение:</strong> Обводите максимально плотно, оставляя минимум фона
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Ошибка 2: Слишком маленькая область */}
+                  <div className="border border-red-700/50 rounded-lg overflow-hidden bg-slate-900/30">
+                    <div className="p-3 bg-red-900/20 border-b border-red-700/30">
+                      <p className="text-white font-medium text-sm flex items-center gap-2">
+                        <Icon name="X" size={14} className="text-red-400" />
+                        Ошибка №2: Область обрезает важные части объекта
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-0">
+                      <div className="border-r border-red-700/30">
+                        <img 
+                          src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/e579f0b3-4ff5-403f-a4ee-ced15095060b.jpg" 
+                          alt="Неправильно - обрезано"
+                          className="w-full h-40 object-cover"
+                        />
+                        <div className="p-2 bg-red-900/30">
+                          <p className="text-xs text-red-300 flex items-center gap-1">
+                            <Icon name="X" size={10} />
+                            Неправильно
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <img 
+                          src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/493f87c1-8e1c-4960-acd6-19b89ef9ba03.jpg" 
+                          alt="Правильно - полностью"
+                          className="w-full h-40 object-cover"
+                        />
+                        <div className="p-2 bg-green-900/30">
+                          <p className="text-xs text-green-300 flex items-center gap-1">
+                            <Icon name="Check" size={10} />
+                            Правильно
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-3 space-y-1">
+                      <p className="text-sm text-slate-300">
+                        <strong className="text-red-400">Проблема:</strong> Область слишком мала и обрезает части объекта
+                      </p>
+                      <p className="text-sm text-slate-300">
+                        <strong className="text-green-400">Решение:</strong> Убедитесь что весь объект полностью входит в область
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Список других ошибок */}
+                  <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+                    <h5 className="text-white font-medium mb-3 text-sm">Другие распространённые ошибки:</h5>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="X" size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-slate-200 font-medium">Неправильный тип объекта:</span>
+                          <span className="text-slate-400 ml-1">Фары отмечены как "Светофор", ремень как "Знак"</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="X" size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-slate-200 font-medium">Дублирование областей:</span>
+                          <span className="text-slate-400 ml-1">Один объект выделен несколько раз</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="X" size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-slate-200 font-medium">Отсутствие подписей:</span>
+                          <span className="text-slate-400 ml-1">Область без пояснений "не горит", "пристёгнут"</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="X" size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-slate-200 font-medium">Пропуск важных объектов:</span>
+                          <span className="text-slate-400 ml-1">На фото 2 фары, размечена только одна</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="X" size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-slate-200 font-medium">Неточные границы:</span>
+                          <span className="text-slate-400 ml-1">Область косая, хотя объект ровный</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="X" size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-slate-200 font-medium">Разметка нечёткого фото:</span>
+                          <span className="text-slate-400 ml-1">Если объект не виден чётко — пометьте "не определить"</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Критерии качественной разметки */}
           <Card className="p-6 bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-700">
             <div className="flex items-start gap-3">
