@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import ViolationMarkup from '@/components/ViolationMarkup';
 import { ViolationCode } from '@/components/ViolationCodesManager';
+import MarkupInstructions from '@/components/MarkupInstructions';
 
 interface AIMetrics {
   id: number;
@@ -48,6 +49,7 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
     return localStorage.getItem('autoProcessEnabled') === 'true';
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const loadMetrics = async () => {
     try {
@@ -139,9 +141,20 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
               <Icon name="Brain" size={28} className="text-purple-400" />
               <h2 className="text-2xl font-bold text-white">Обучение ИИ модели</h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <Icon name="X" size={20} />
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowInstructions(true)}
+                className="border-blue-600 text-blue-400 hover:bg-blue-500/10"
+              >
+                <Icon name="BookOpen" size={16} className="mr-2" />
+                Инструкция
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <Icon name="X" size={20} />
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -587,6 +600,10 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
           }}
           onCancel={() => setSelectedSampleForMarkup(null)}
         />
+      )}
+
+      {showInstructions && (
+        <MarkupInstructions onClose={() => setShowInstructions(false)} />
       )}
     </div>
   );
