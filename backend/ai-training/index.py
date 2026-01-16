@@ -202,12 +202,67 @@ def handler(event: dict, context) -> dict:
                     ]
                 }
                 
+                cursor.execute('''
+                    INSERT INTO ai_training_data 
+                    (material_id, markup_id, model_version, prediction_result, features)
+                    VALUES (%s, 0, %s, %s, %s)
+                    ON CONFLICT DO NOTHING
+                ''', (
+                    material_id,
+                    model_version,
+                    json.dumps(prediction),
+                    json.dumps({'source': 'auto_prediction'})
+                ))
+                conn.commit()
+                
                 return {
                     'statusCode': 200,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'body': json.dumps({
                         'prediction': prediction,
                         'model_version': model_version
+                    })
+                }
+            
+            elif action == 'feedback':
+                material_id = data.get('material_id')
+                is_correct = data.get('is_correct')
+                actual_violation_code = data.get('actual_violation_code')
+                
+                if not material_id or is_correct is None:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'material_id and is_correct are required'})
+                    }
+                
+                cursor.execute('''
+                    UPDATE ai_training_data 
+                    SET 
+                        is_correct = %s,
+                        actual_result = %s
+                    WHERE material_id = %s
+                ''', (is_correct, actual_violation_code, material_id))
+                conn.commit()
+                
+                cursor.execute('''
+                    SELECT 
+                        COUNT(*) as total,
+                        SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) as correct
+                    FROM ai_training_data
+                    WHERE is_correct IS NOT NULL
+                ''')
+                stats = cursor.fetchone()
+                accuracy = (stats['correct'] / stats['total'] * 100) if stats['total'] > 0 else 0
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'feedback_saved': True,
+                        'current_accuracy': round(accuracy, 2),
+                        'total_feedbacks': stats['total']
                     })
                 }
         

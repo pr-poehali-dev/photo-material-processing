@@ -69,6 +69,10 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
   };
 
   const trainModel = async () => {
+    if (!confirm('Запустить переобучение модели на исправленных данных? Это может занять некоторое время.')) {
+      return;
+    }
+
     setIsTraining(true);
     setTrainingProgress(0);
 
@@ -89,14 +93,15 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
       const data = await response.json();
       
       if (response.ok) {
-        alert(`Модель обучена успешно!\nВерсия: ${data.model_version}\nТочность: ${(data.metrics.accuracy * 100).toFixed(2)}%`);
+        alert(`✅ Модель успешно переобучена!\n\nВерсия: ${data.model_version}\nТочность: ${(data.metrics.accuracy * 100).toFixed(2)}%\nОбразцов: ${data.training_samples}\n\nМетрики:\n• Precision: ${(data.metrics.precision * 100).toFixed(2)}%\n• Recall: ${(data.metrics.recall * 100).toFixed(2)}%\n• F1-Score: ${(data.metrics.f1_score * 100).toFixed(2)}%`);
         await loadMetrics();
+        await loadDatasetStats();
       } else {
-        alert(`Ошибка обучения: ${data.error}\n${data.message || ''}`);
+        alert(`❌ Ошибка обучения: ${data.error}\n${data.message || ''}`);
       }
     } catch (error) {
       console.error('Ошибка обучения модели:', error);
-      alert('Ошибка обучения модели');
+      alert('❌ Ошибка обучения модели');
       clearInterval(progressInterval);
     } finally {
       setIsTraining(false);
@@ -128,11 +133,11 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="bg-slate-900/50 border-slate-700 p-4">
               <div className="flex items-center gap-3 mb-2">
                 <Icon name="Database" size={20} className="text-blue-400" />
-                <h3 className="font-semibold text-white">Всего образцов</h3>
+                <h3 className="font-semibold text-white text-sm">Всего образцов</h3>
               </div>
               <p className="text-3xl font-bold text-blue-400">
                 {datasetStats?.total_samples || 0}
@@ -142,7 +147,7 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
             <Card className="bg-slate-900/50 border-slate-700 p-4">
               <div className="flex items-center gap-3 mb-2">
                 <Icon name="GraduationCap" size={20} className="text-green-400" />
-                <h3 className="font-semibold text-white">Для обучения</h3>
+                <h3 className="font-semibold text-white text-sm">Для обучения</h3>
               </div>
               <p className="text-3xl font-bold text-green-400">
                 {datasetStats?.training_samples || 0}
@@ -152,10 +157,20 @@ const AITrainingPanel = ({ isOpen, onClose }: AITrainingPanelProps) => {
             <Card className="bg-slate-900/50 border-slate-700 p-4">
               <div className="flex items-center gap-3 mb-2">
                 <Icon name="Tag" size={20} className="text-purple-400" />
-                <h3 className="font-semibold text-white">Типов нарушений</h3>
+                <h3 className="font-semibold text-white text-sm">Типов нарушений</h3>
               </div>
               <p className="text-3xl font-bold text-purple-400">
                 {datasetStats?.violation_types || 0}
+              </p>
+            </Card>
+
+            <Card className="bg-slate-900/50 border-slate-700 p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <Icon name="CheckCircle" size={20} className="text-amber-400" />
+                <h3 className="font-semibold text-white text-sm">Подтверждено</h3>
+              </div>
+              <p className="text-3xl font-bold text-amber-400">
+                {trainingData.filter(d => d.is_training_data).length}
               </p>
             </Card>
           </div>

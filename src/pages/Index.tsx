@@ -17,6 +17,7 @@ import PhotoGallery from '@/components/PhotoGallery';
 import ViolationMarkup from '@/components/ViolationMarkup';
 import ViolationParameters, { defaultParametersByCode, ViolationParameterValue } from '@/components/ViolationParameters';
 import AITrainingPanel from '@/components/AITrainingPanel';
+import AIAccuracyStats from '@/components/AIAccuracyStats';
 
 interface Material {
   id: string;
@@ -807,7 +808,9 @@ export default function Index() {
           </div>
         </div>
 
-        <div className="grid grid-cols-6 gap-4 mb-6">
+        <AIAccuracyStats refreshTrigger={materials.length} />
+
+        <div className="grid grid-cols-6 gap-4 mb-6 mt-6">
           <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 hover-scale">
             <div className="flex items-center justify-between">
               <div>
@@ -1133,6 +1136,54 @@ export default function Index() {
                               </div>
                             </div>
                           )}
+                          <div className="pt-2 border-t border-purple-500/20 flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 border-green-500 text-green-400 hover:bg-green-500/10"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch('https://functions.poehali.dev/9128cf27-3d45-4ac1-b0a2-0c2935594a9e', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      material_id: selectedMaterial.id,
+                                      violation_code: selectedMaterial.aiPrediction.violationCode,
+                                      regions: [],
+                                      notes: 'Результат ИИ подтвержден пользователем',
+                                      is_training_data: true,
+                                      parameters: []
+                                    })
+                                  });
+                                  if (response.ok) {
+                                    alert('Результат подтвержден и добавлен в обучающую выборку!');
+                                  }
+                                } catch (error) {
+                                  console.error('Ошибка сохранения:', error);
+                                }
+                              }}
+                            >
+                              <Icon name="Check" size={14} className="mr-1" />
+                              Верно
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 border-red-500 text-red-400 hover:bg-red-500/10"
+                              onClick={() => {
+                                setMaterials(prev => prev.map(m => 
+                                  m.id === selectedMaterial.id 
+                                    ? { ...m, aiPrediction: undefined, status: 'pending', violationCode: undefined, violationType: undefined }
+                                    : m
+                                ));
+                                setSelectedMaterial({ ...selectedMaterial, aiPrediction: undefined, status: 'pending', violationCode: undefined, violationType: undefined });
+                                alert('Результат ИИ отклонен. Вы можете разметить материал вручную.');
+                              }}
+                            >
+                              <Icon name="X" size={14} className="mr-1" />
+                              Неверно
+                            </Button>
+                          </div>
                         </div>
                       )}
                       {selectedMaterial.violationCode && (
