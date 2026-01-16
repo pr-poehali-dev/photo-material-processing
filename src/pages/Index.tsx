@@ -28,6 +28,18 @@ interface Material {
   status: 'pending' | 'violation' | 'clean' | 'analytics' | 'processed';
   images?: TarImages;
   tarFile?: File;
+  aiPrediction?: {
+    hasViolation: boolean;
+    confidence: number;
+    violationCode?: string;
+    violationType?: string;
+    detectedObjects?: Array<{
+      type: string;
+      confidence: number;
+      bbox: number[];
+    }>;
+  };
+  isProcessingAI?: boolean;
 }
 
 const mockMaterials: Material[] = [
@@ -496,11 +508,16 @@ export default function Index() {
             status: 'pending',
             images: metadata.images,
             tarFile: tarFiles[index],
+            isProcessingAI: true,
           };
         });
 
         setMaterials(prev => [...newMaterials, ...prev]);
         setIsUploading(false);
+        
+        newMaterials.forEach(async (material) => {
+          await processWithAI(material.id);
+        });
         
         const violationsFound = newMaterials.filter(m => m.violationCode).length;
         alert(`Загружено ${tarFiles.length} TAR-архивов\nОбнаружено нарушений: ${violationsFound}`);
@@ -651,6 +668,50 @@ export default function Index() {
         setSelectedMaterial(null);
       }
       setSelectedMaterialIds(new Set());
+    }
+  };
+
+  const processWithAI = async (materialId: string) => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/f988916a-a0b1-4821-8408-f7732ad49548', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'predict',
+          material_id: materialId
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const prediction = data.prediction;
+
+        setMaterials(prev => prev.map(m => {
+          if (m.id === materialId) {
+            const codeInfo = prediction.violation_code ? 
+              violationCodes.find(c => c.code === prediction.violation_code) : undefined;
+
+            return {
+              ...m,
+              isProcessingAI: false,
+              aiPrediction: prediction,
+              status: prediction.has_violation ? 'violation' : 'clean',
+              violationCode: prediction.violation_code,
+              violationType: codeInfo?.description || prediction.violation_type
+            };
+          }
+          return m;
+        }));
+      } else {
+        setMaterials(prev => prev.map(m => 
+          m.id === materialId ? { ...m, isProcessingAI: false } : m
+        ));
+      }
+    } catch (error) {
+      console.error('Ошибка распознавания ИИ:', error);
+      setMaterials(prev => prev.map(m => 
+        m.id === materialId ? { ...m, isProcessingAI: false } : m
+      ));
     }
   };
 
@@ -972,7 +1033,30 @@ export default function Index() {
                             {getStatusLabel(material.status)}
                           </Badge>
                         </div>
-                        {material.violationType && (
+                        {material.isProcessingAI && (
+                          <div className="mt-2 p-2 bg-purple-500/10 border border-purple-500/20 rounded flex items-center gap-2">
+                            <Icon name="Loader2" size={14} className="text-purple-400 animate-spin" />
+                            <p className="text-purple-400 text-sm">
+                              Анализ ИИ...
+                            </p>
+                          </div>
+                        )}
+                        {material.aiPrediction && !material.isProcessingAI && (
+                          <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Icon name="Brain" size={14} className="text-blue-400" />
+                                <p className="text-blue-400 text-sm font-medium">
+                                  ИИ: {material.aiPrediction.hasViolation ? 'Нарушение' : 'Чисто'}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className="text-blue-400 border-blue-400">
+                                {(material.aiPrediction.confidence * 100).toFixed(0)}%
+                              </Badge>
+                            </div>
+                          </div>
+                        )}
+                        {material.violationType && !material.aiPrediction && (
                           <div className="mt-2 p-2 bg-orange-500/10 border border-orange-500/20 rounded">
                             <p className="text-orange-400 text-sm font-medium">
                               {material.violationCode}: {material.violationType}
@@ -1017,6 +1101,40 @@ export default function Index() {
                           {getStatusLabel(selectedMaterial.status)}
                         </Badge>
                       </div>
+                      {selectedMaterial.aiPrediction && (
+                        <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-lg space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Icon name="Brain" size={16} className="text-purple-400" />
+                              <span className="text-sm font-semibold text-purple-400">Анализ ИИ</span>
+                            </div>
+                            <Badge variant="outline" className="text-purple-400 border-purple-400">
+                              {(selectedMaterial.aiPrediction.confidence * 100).toFixed(1)}%
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-300">Результат:</span>
+                            <span className={selectedMaterial.aiPrediction.hasViolation ? "text-orange-400 font-medium" : "text-green-400 font-medium"}>
+                              {selectedMaterial.aiPrediction.hasViolation ? 'Нарушение обнаружено' : 'Нарушений не обнаружено'}
+                            </span>
+                          </div>
+                          {selectedMaterial.aiPrediction.detectedObjects && selectedMaterial.aiPrediction.detectedObjects.length > 0 && (
+                            <div className="pt-2 border-t border-purple-500/20">
+                              <p className="text-xs text-slate-400 mb-2">Обнаруженные объекты:</p>
+                              <div className="space-y-1">
+                                {selectedMaterial.aiPrediction.detectedObjects.map((obj, idx) => (
+                                  <div key={idx} className="flex items-center justify-between text-xs">
+                                    <span className="text-slate-300">
+                                      {obj.type === 'vehicle' ? 'ТС' : obj.type === 'plate' ? 'Номер' : obj.type}
+                                    </span>
+                                    <span className="text-blue-400">{(obj.confidence * 100).toFixed(0)}%</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {selectedMaterial.violationCode && (
                         <>
                           <div className="flex justify-between">
