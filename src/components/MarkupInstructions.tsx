@@ -117,6 +117,41 @@ const MarkupInstructions = ({ onClose }: MarkupInstructionsProps) => {
                     <p className="text-xs text-slate-400 mb-1">Код нарушения КоАП РФ:</p>
                     <p className="text-white font-mono">12.6 — Управление ТС без ремня безопасности</p>
                   </div>
+
+                  <div className="mt-4 space-y-3">
+                    <h5 className="text-white font-medium flex items-center gap-2">
+                      <Icon name="Image" size={16} className="text-pink-400" />
+                      Примеры разметки:
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="border border-green-700/50 rounded-lg overflow-hidden bg-slate-900/50">
+                        <img 
+                          src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/074bb021-2d92-4398-899e-bcb0ba8f3774.jpg" 
+                          alt="Пример с ремнём"
+                          className="w-full h-32 object-cover"
+                        />
+                        <div className="p-2 bg-green-900/20">
+                          <p className="text-xs text-green-400 font-medium flex items-center gap-1">
+                            <Icon name="Check" size={12} />
+                            Ремень пристёгнут — нарушения нет
+                          </p>
+                        </div>
+                      </div>
+                      <div className="border border-red-700/50 rounded-lg overflow-hidden bg-slate-900/50">
+                        <img 
+                          src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/798fa88d-0d59-43d9-9134-e5ba4d57295c.jpg" 
+                          alt="Пример без ремня"
+                          className="w-full h-32 object-cover"
+                        />
+                        <div className="p-2 bg-red-900/20">
+                          <p className="text-xs text-red-400 font-medium flex items-center gap-1">
+                            <Icon name="X" size={12} />
+                            Ремень не виден — нарушение
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -190,6 +225,41 @@ const MarkupInstructions = ({ onClose }: MarkupInstructionsProps) => {
                     <div className="bg-slate-950 border border-slate-700 rounded-lg p-3">
                       <p className="text-xs text-slate-400 mb-1">Неисправные фары:</p>
                       <p className="text-white font-mono text-sm">12.5.1 — Управление ТС с неисправными световыми приборами</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    <h5 className="text-white font-medium flex items-center gap-2">
+                      <Icon name="Image" size={16} className="text-yellow-400" />
+                      Примеры разметки:
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="border border-green-700/50 rounded-lg overflow-hidden bg-slate-900/50">
+                        <img 
+                          src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/bf8c4a01-83bc-4404-a840-a5f3bf695e93.jpg" 
+                          alt="Обе фары включены"
+                          className="w-full h-32 object-cover"
+                        />
+                        <div className="p-2 bg-green-900/20">
+                          <p className="text-xs text-green-400 font-medium flex items-center gap-1">
+                            <Icon name="Check" size={12} />
+                            Обе фары работают — нарушения нет
+                          </p>
+                        </div>
+                      </div>
+                      <div className="border border-red-700/50 rounded-lg overflow-hidden bg-slate-900/50">
+                        <img 
+                          src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/a150e48d-0a2a-4539-ad9c-36c8db8c0e60.jpg" 
+                          alt="Одна фара не работает"
+                          className="w-full h-32 object-cover"
+                        />
+                        <div className="p-2 bg-red-900/20">
+                          <p className="text-xs text-red-400 font-medium flex items-center gap-1">
+                            <Icon name="X" size={12} />
+                            Одна фара не горит — нарушение
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
