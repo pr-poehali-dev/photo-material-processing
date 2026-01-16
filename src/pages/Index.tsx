@@ -14,6 +14,9 @@ import Icon from '@/components/ui/icon';
 import ViolationCodesManager, { ViolationCode } from '@/components/ViolationCodesManager';
 import { parseTarFiles, TarImages } from '@/utils/tarParser';
 import PhotoGallery from '@/components/PhotoGallery';
+import ViolationMarkup from '@/components/ViolationMarkup';
+import ViolationParameters, { defaultParametersByCode, ViolationParameterValue } from '@/components/ViolationParameters';
+import AITrainingPanel from '@/components/AITrainingPanel';
 
 interface Material {
   id: string;
@@ -329,6 +332,10 @@ export default function Index() {
   const [statusFilter, setStatusFilter] = useState<Set<Material['status']>>(getStoredStatusFilter);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedMaterialIds, setSelectedMaterialIds] = useState<Set<string>>(new Set());
+  const [showMarkup, setShowMarkup] = useState(false);
+  const [showParameters, setShowParameters] = useState(false);
+  const [parameterValues, setParameterValues] = useState<ViolationParameterValue[]>([]);
+  const [isAITrainingOpen, setIsAITrainingOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -678,6 +685,14 @@ export default function Index() {
               >
                 <Icon name="Settings" size={16} className="mr-2" />
                 Коды нарушений
+              </Button>
+              <Button 
+                variant="outline" 
+                className="border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                onClick={() => setIsAITrainingOpen(true)}
+              >
+                <Icon name="Brain" size={16} className="mr-2" />
+                Обучение ИИ
               </Button>
               <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
                 <Icon name="FileCode" size={16} className="mr-2" />
@@ -1029,6 +1044,130 @@ export default function Index() {
                     />
                   </div>
 
+                  <div className="border-t border-slate-700 pt-4 space-y-4">
+                    <Button
+                      variant="outline"
+                      className="w-full border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                      onClick={() => setShowMarkup(!showMarkup)}
+                    >
+                      <Icon name="Pencil" size={16} className="mr-2" />
+                      {showMarkup ? 'Скрыть разметку' : 'Разметить нарушение'}
+                    </Button>
+
+                    {showMarkup && selectedMaterial.images?.main && (
+                      <ViolationMarkup
+                        materialId={selectedMaterial.id}
+                        imageUrl={selectedMaterial.images.main}
+                        violationCodes={violationCodes}
+                        onSave={async (markup) => {
+                          try {
+                            const response = await fetch('https://functions.poehali.dev/9128cf27-3d45-4ac1-b0a2-0c2935594a9e', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                material_id: markup.materialId,
+                                violation_code: markup.violationCode,
+                                regions: markup.regions,
+                                notes: markup.notes,
+                                is_training_data: markup.isTrainingData,
+                                parameters: parameterValues
+                              })
+                            });
+                            if (response.ok) {
+                              alert('Разметка сохранена!');
+                              setShowMarkup(false);
+                            }
+                          } catch (error) {
+                            console.error('Ошибка сохранения разметки:', error);
+                          }
+                        }}
+                        onCancel={() => setShowMarkup(false)}
+                      />
+                    )}
+
+                    {selectedMaterial.violationCode && (
+                      <Button
+                        variant="outline"
+                        className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                        onClick={() => setShowParameters(!showParameters)}
+                      >
+                        <Icon name="Settings" size={16} className="mr-2" />
+                        {showParameters ? 'Скрыть параметры' : 'Параметры нарушения'}
+                      </Button>
+                    )}
+
+                    {showParameters && selectedMaterial.violationCode && (
+                      <ViolationParameters
+                        violationCode={selectedMaterial.violationCode}
+                        parameters={defaultParametersByCode[selectedMaterial.violationCode] || []}
+                        initialValues={parameterValues}
+                        onValuesChange={setParameterValues}
+                      />
+                    )}
+                  </div>
+
+                  <div className="border-t border-slate-700 pt-4 space-y-4">
+                    <Button
+                      variant="outline"
+                      className="w-full border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                      onClick={() => setShowMarkup(!showMarkup)}
+                    >
+                      <Icon name="Pencil" size={16} className="mr-2" />
+                      {showMarkup ? 'Скрыть разметку' : 'Разметить нарушение'}
+                    </Button>
+
+                    {showMarkup && selectedMaterial.images?.main && (
+                      <ViolationMarkup
+                        materialId={selectedMaterial.id}
+                        imageUrl={selectedMaterial.images.main}
+                        violationCodes={violationCodes}
+                        onSave={async (markup) => {
+                          try {
+                            const response = await fetch('https://functions.poehali.dev/9128cf27-3d45-4ac1-b0a2-0c2935594a9e', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                material_id: markup.materialId,
+                                violation_code: markup.violationCode,
+                                regions: markup.regions,
+                                notes: markup.notes,
+                                is_training_data: markup.isTrainingData,
+                                parameters: parameterValues
+                              })
+                            });
+                            if (response.ok) {
+                              alert('Разметка сохранена!');
+                              setShowMarkup(false);
+                            }
+                          } catch (error) {
+                            console.error('Ошибка сохранения разметки:', error);
+                          }
+                        }}
+                        onCancel={() => setShowMarkup(false)}
+                      />
+                    )}
+
+                    {selectedMaterial.violationCode && (
+                      <Button
+                        variant="outline"
+                        className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                        onClick={() => setShowParameters(!showParameters)}
+                      >
+                        <Icon name="Settings" size={16} className="mr-2" />
+                        {showParameters ? 'Скрыть параметры' : 'Параметры нарушения'}
+                      </Button>
+                    )}
+
+                    {showParameters && selectedMaterial.violationCode && (
+                      <ViolationParameters
+                        violationCode={selectedMaterial.violationCode}
+                        parameters={defaultParametersByCode[selectedMaterial.violationCode] || []}
+                        initialValues={parameterValues}
+                        onValuesChange={setParameterValues}
+                      />
+                    )}
+                  </div>
+
                   <div className="border-t border-slate-700 pt-4">
                     <label className="text-white text-sm font-medium mb-2 block">
                       Код нарушения
@@ -1109,6 +1248,11 @@ export default function Index() {
         onClose={() => setIsCodesManagerOpen(false)}
         codes={violationCodes}
         onCodesChange={setViolationCodes}
+      />
+
+      <AITrainingPanel
+        isOpen={isAITrainingOpen}
+        onClose={() => setIsAITrainingOpen(false)}
       />
     </div>
   );

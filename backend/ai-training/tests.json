@@ -1,0 +1,34 @@
+{
+  "tests": [
+    {
+      "name": "Get training metrics",
+      "method": "GET",
+      "path": "/?action=metrics",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "metrics": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get training data",
+      "method": "GET",
+      "path": "/?action=training-data",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "training_data": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get dataset stats",
+      "method": "GET",
+      "path": "/?action=dataset-stats",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "stats": "object"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "Get all markups",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "markups": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create markup",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "material_id": "test-123",
+        "violation_code": "12.9.2",
+        "regions": [],
+        "notes": "Test markup",
+        "is_training_data": true
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true,
+        "material_id": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
