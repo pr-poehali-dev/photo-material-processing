@@ -316,7 +316,111 @@ const MarkupInstructions = ({ onClose }: MarkupInstructionsProps) => {
             </div>
           </Card>
 
-          {/* Примеры хорошей разметки */}
+          {/* Примеры правильной разметки областей */}
+          <Card className="p-6 bg-slate-800/50 border-slate-700">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-cyan-500/20 rounded-lg">
+                <Icon name="Square" size={20} className="text-cyan-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-lg font-semibold text-white mb-3">Как правильно обводить объекты</h4>
+                <p className="text-slate-300 text-sm mb-4">
+                  Ключевое правило: область должна плотно охватывать объект, минимизируя фон и не отрезая важные части
+                </p>
+
+                <div className="space-y-4">
+                  {/* Пример 1: Ремень безопасности */}
+                  <div className="border border-pink-700/50 rounded-lg overflow-hidden bg-slate-900/30">
+                    <div className="p-3 bg-pink-900/20 border-b border-pink-700/30">
+                      <p className="text-white font-medium text-sm flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-pink-500"></span>
+                        Пример разметки ремня безопасности
+                      </p>
+                    </div>
+                    <img 
+                      src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/edb2b437-ffba-454c-8fd9-a0f10bb7e1e9.jpg" 
+                      alt="Разметка ремня"
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-3 space-y-2">
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Область охватывает зону от плеча до пояса водителя</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Включает область, где должен быть виден ремень</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Не захватывает лишние части салона</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Пример 2: Фары */}
+                  <div className="border border-yellow-700/50 rounded-lg overflow-hidden bg-slate-900/30">
+                    <div className="p-3 bg-yellow-900/20 border-b border-yellow-700/30">
+                      <p className="text-white font-medium text-sm flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+                        Пример разметки фар
+                      </p>
+                    </div>
+                    <img 
+                      src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/493f87c1-8e1c-4960-acd6-19b89ef9ba03.jpg" 
+                      alt="Разметка фар"
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-3 space-y-2">
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Каждая фара выделена отдельной областью</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Область плотно охватывает блок фары</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Минимум фона вокруг фары</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Пример 3: Несколько объектов */}
+                  <div className="border border-purple-700/50 rounded-lg overflow-hidden bg-slate-900/30">
+                    <div className="p-3 bg-purple-900/20 border-b border-purple-700/30">
+                      <p className="text-white font-medium text-sm flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+                        Разметка нескольких объектов
+                      </p>
+                    </div>
+                    <img 
+                      src="https://cdn.poehali.dev/projects/493f019c-4ec3-40c7-8ed7-f73fd0f42aa1/files/e5137b47-11fb-4fcb-a485-0120f5af7770.jpg" 
+                      alt="Разметка нескольких объектов"
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-3 space-y-2">
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Используйте разные типы объектов (ТС, Номер, Фары)</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Области не перекрываются и не дублируются</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <Icon name="Check" size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">Каждый объект имеет подпись для уточнения</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Критерии качественной разметки */}
           <Card className="p-6 bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-700">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-green-500/20 rounded-lg">
