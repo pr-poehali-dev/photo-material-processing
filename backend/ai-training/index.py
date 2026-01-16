@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import uuid
 
 def handler(event: dict, context) -> dict:
     '''API для обучения ИИ модели распознавания нарушений'''
@@ -216,13 +217,13 @@ def handler(event: dict, context) -> dict:
                         'body': json.dumps({'error': 'file_name is required'})
                     }
                 
-                cursor.execute('''
-                    INSERT INTO materials (file_name, status, preview_url, timestamp)
-                    VALUES (%s, %s, %s, %s)
-                    RETURNING id
-                ''', (file_name, 'pending', image_data, datetime.now()))
+                material_id = str(uuid.uuid4())
                 
-                material_id = cursor.fetchone()['id']
+                cursor.execute('''
+                    INSERT INTO materials (id, file_name, status, preview_url, timestamp)
+                    VALUES (%s, %s, %s, %s, %s)
+                ''', (material_id, file_name, 'pending', image_data, datetime.now()))
+                
                 conn.commit()
                 
                 return {
