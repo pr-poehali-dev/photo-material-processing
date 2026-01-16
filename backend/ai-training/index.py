@@ -53,6 +53,7 @@ def handler(event: dict, context) -> dict:
                     SELECT 
                         m.id as material_id,
                         m.file_name,
+                        m.preview_url,
                         COALESCE(vm.violation_code, '') as violation_code,
                         COALESCE(vm.notes, '') as notes,
                         COALESCE(vm.is_training_data, FALSE) as is_training_data,
@@ -60,7 +61,7 @@ def handler(event: dict, context) -> dict:
                     FROM materials m
                     LEFT JOIN violation_markups vm ON m.id = vm.material_id
                     LEFT JOIN markup_regions mr ON m.id = mr.material_id
-                    GROUP BY m.id, m.file_name, vm.violation_code, vm.notes, vm.is_training_data
+                    GROUP BY m.id, m.file_name, m.preview_url, vm.violation_code, vm.notes, vm.is_training_data
                     ORDER BY m.created_at DESC
                 ''')
                 training_data = cursor.fetchall()
@@ -216,10 +217,10 @@ def handler(event: dict, context) -> dict:
                     }
                 
                 cursor.execute('''
-                    INSERT INTO materials (file_name, status)
-                    VALUES (%s, %s)
+                    INSERT INTO materials (file_name, status, preview_url, timestamp)
+                    VALUES (%s, %s, %s, %s)
                     RETURNING id
-                ''', (file_name, 'pending'))
+                ''', (file_name, 'pending', image_data, datetime.now()))
                 
                 material_id = cursor.fetchone()['id']
                 conn.commit()

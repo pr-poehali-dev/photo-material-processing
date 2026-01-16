@@ -26,6 +26,7 @@ interface TrainingDataItem {
   notes: string;
   is_training_data: boolean;
   regions_count: number;
+  preview_url?: string;
 }
 
 interface AITrainingPanelProps {
@@ -332,12 +333,21 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                             let successCount = 0;
                             for (const file of files) {
                               try {
+                                const reader = new FileReader();
+                                const base64Promise = new Promise((resolve) => {
+                                  reader.onload = (e) => resolve(e.target?.result);
+                                  reader.readAsDataURL(file);
+                                });
+                                
+                                const base64 = await base64Promise;
+                                
                                 const response = await fetch('https://functions.poehali.dev/f988916a-a0b1-4821-8408-f7732ad49548', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({
                                     action: 'upload-sample',
-                                    file_name: file.name
+                                    file_name: file.name,
+                                    image_data: base64
                                   })
                                 });
                                 
@@ -350,7 +360,11 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                             }
                             
                             await loadTrainingData();
-                            alert(`Загружено ${successCount} из ${files.length} файлов`);
+                            if (successCount === files.length) {
+                              alert(`✅ Успешно загружено ${successCount} файлов!\n\nТеперь вы можете разметить их, нажав кнопку "Разметить" на каждом образце.`);
+                            } else {
+                              alert(`⚠️ Загружено ${successCount} из ${files.length} файлов.\n\nНекоторые файлы не удалось загрузить. Проверьте консоль для деталей.`);
+                            }
                           } catch (error) {
                             console.error('Ошибка загрузки файлов:', error);
                             alert('Ошибка при загрузке файлов');
@@ -399,7 +413,18 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                       key={item.material_id}
                       className="group p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:border-purple-500/50 hover:bg-slate-800 transition-all"
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-4">
+                        {item.preview_url ? (
+                          <img
+                            src={item.preview_url}
+                            alt={item.file_name}
+                            className="w-24 h-24 object-cover rounded-lg border-2 border-slate-600 group-hover:border-purple-500/50 flex-shrink-0 transition-all"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 bg-slate-900 rounded-lg border-2 border-slate-600 group-hover:border-purple-500/50 flex items-center justify-center flex-shrink-0 transition-all">
+                            <Icon name="ImageOff" size={32} className="text-slate-600" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
                             <Icon name="FileImage" size={16} className="text-purple-400 flex-shrink-0" />
@@ -484,7 +509,7 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
       {selectedSampleForMarkup && (
         <ViolationMarkup
           materialId={selectedSampleForMarkup.material_id}
-          imageUrl={`https://placeholder-image-url/${selectedSampleForMarkup.file_name}`}
+          imageUrl={selectedSampleForMarkup.preview_url || `https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800`}
           violationCodes={violationCodes}
           onSave={async (markup) => {
             try {
