@@ -16,7 +16,7 @@ interface MarkupRegion {
   width: number;
   height: number;
   label: string;
-  type: 'vehicle' | 'plate' | 'signal' | 'sign' | 'other';
+  type: 'vehicle' | 'plate' | 'signal' | 'sign' | 'seatbelt' | 'headlight' | 'other';
 }
 
 interface ViolationMarkup {
@@ -119,6 +119,8 @@ const ViolationMarkup = ({
       case 'plate': return 'rgb(59, 130, 246)';
       case 'signal': return 'rgb(34, 197, 94)';
       case 'sign': return 'rgb(251, 146, 60)';
+      case 'seatbelt': return 'rgb(236, 72, 153)';
+      case 'headlight': return 'rgb(253, 224, 71)';
       default: return 'rgb(168, 85, 247)';
     }
   };
@@ -129,6 +131,8 @@ const ViolationMarkup = ({
       case 'plate': return 'Номер';
       case 'signal': return 'Светофор';
       case 'sign': return 'Знак';
+      case 'seatbelt': return 'Ремень';
+      case 'headlight': return 'Фары';
       default: return 'Другое';
     }
   };
@@ -173,7 +177,7 @@ const ViolationMarkup = ({
                   
                   <div className="flex flex-wrap items-center gap-2">
                     <Label className="text-slate-300 text-sm">Тип объекта:</Label>
-                    {(['vehicle', 'plate', 'signal', 'sign', 'other'] as const).map((type) => (
+                    {(['vehicle', 'plate', 'signal', 'sign', 'seatbelt', 'headlight', 'other'] as const).map((type) => (
                       <Button
                         key={type}
                         variant={regionType === type ? 'default' : 'outline'}
