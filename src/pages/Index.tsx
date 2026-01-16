@@ -18,6 +18,7 @@ import ViolationMarkup from '@/components/ViolationMarkup';
 import ViolationParameters, { defaultParametersByCode, ViolationParameterValue } from '@/components/ViolationParameters';
 import AITrainingPanel from '@/components/AITrainingPanel';
 import AIAccuracyStats from '@/components/AIAccuracyStats';
+import MarkupInstructions from '@/components/MarkupInstructions';
 
 interface Material {
   id: string;
@@ -349,6 +350,7 @@ export default function Index() {
   const [showParameters, setShowParameters] = useState(false);
   const [parameterValues, setParameterValues] = useState<ViolationParameterValue[]>([]);
   const [isAITrainingOpen, setIsAITrainingOpen] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     try {
@@ -1276,14 +1278,24 @@ export default function Index() {
                   </div>
 
                   <div className="border-t border-slate-700 pt-4 space-y-4">
-                    <Button
-                      variant="outline"
-                      className="w-full border-blue-500 text-blue-400 hover:bg-blue-500/10"
-                      onClick={() => setShowMarkup(!showMarkup)}
-                    >
-                      <Icon name="Pencil" size={16} className="mr-2" />
-                      {showMarkup ? 'Скрыть разметку' : 'Разметить нарушение'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                        onClick={() => setShowMarkup(!showMarkup)}
+                      >
+                        <Icon name="Pencil" size={16} className="mr-2" />
+                        {showMarkup ? 'Скрыть разметку' : 'Разметить нарушение'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                        onClick={() => setShowInstructions(true)}
+                        title="Инструкция для разметчика"
+                      >
+                        <Icon name="BookOpen" size={16} />
+                      </Button>
+                    </div>
 
                     {showMarkup && selectedMaterial.images?.main && (
                       <ViolationMarkup
@@ -1424,6 +1436,10 @@ export default function Index() {
         onClose={() => setIsAITrainingOpen(false)}
         violationCodes={violationCodes}
       />
+
+      {showInstructions && (
+        <MarkupInstructions onClose={() => setShowInstructions(false)} />
+      )}
     </div>
   );
 }
