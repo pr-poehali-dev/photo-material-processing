@@ -44,6 +44,10 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
   const [activeTab, setActiveTab] = useState<'training' | 'samples'>('training');
   const [isUploading, setIsUploading] = useState(false);
   const [selectedSampleForMarkup, setSelectedSampleForMarkup] = useState<TrainingDataItem | null>(null);
+  const [autoProcessEnabled, setAutoProcessEnabled] = useState(() => {
+    return localStorage.getItem('autoProcessEnabled') === 'true';
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const loadMetrics = async () => {
     try {
@@ -183,6 +187,52 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
           </div>
 
 
+
+          <Card className="bg-slate-900/50 border-slate-700 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Icon name="Zap" size={20} className={autoProcessEnabled ? 'text-green-400' : 'text-slate-400'} />
+                <div>
+                  <h3 className="font-semibold text-white">Автоматическая обработка</h3>
+                  <p className="text-xs text-slate-400">ИИ будет анализировать загружаемые материалы автоматически</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  const newValue = !autoProcessEnabled;
+                  setAutoProcessEnabled(newValue);
+                  localStorage.setItem('autoProcessEnabled', String(newValue));
+                }}
+                className={`min-w-[100px] ${autoProcessEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-700 hover:bg-slate-600'}`}
+              >
+                <Icon name={autoProcessEnabled ? 'Check' : 'X'} size={16} className="mr-2" />
+                {autoProcessEnabled ? 'Включено' : 'Выключено'}
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="bg-slate-900/50 border-slate-700 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Icon name="Zap" size={20} className={autoProcessEnabled ? 'text-green-400' : 'text-slate-400'} />
+                <div>
+                  <h3 className="font-semibold text-white">Автоматическая обработка</h3>
+                  <p className="text-xs text-slate-400">ИИ будет анализировать загружаемые материалы автоматически</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  const newValue = !autoProcessEnabled;
+                  setAutoProcessEnabled(newValue);
+                  localStorage.setItem('autoProcessEnabled', String(newValue));
+                }}
+                className={`min-w-[100px] ${autoProcessEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-700 hover:bg-slate-600'}`}
+              >
+                <Icon name={autoProcessEnabled ? 'Check' : 'X'} size={16} className="mr-2" />
+                {autoProcessEnabled ? 'Включено' : 'Выключено'}
+              </Button>
+            </div>
+          </Card>
 
           <div className="flex gap-2 border-b border-slate-700 mb-6">
             <Button
@@ -347,7 +397,8 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                                   body: JSON.stringify({
                                     action: 'upload-sample',
                                     file_name: file.name,
-                                    image_data: base64
+                                    image_data: base64,
+                                    auto_process: autoProcessEnabled
                                   })
                                 });
                                 

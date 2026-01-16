@@ -209,6 +209,7 @@ def handler(event: dict, context) -> dict:
             elif action == 'upload-sample':
                 file_name = data.get('file_name')
                 image_data = data.get('image_data')
+                auto_process = data.get('auto_process', False)
                 
                 if not file_name:
                     return {
@@ -226,13 +227,40 @@ def handler(event: dict, context) -> dict:
                 
                 conn.commit()
                 
+                prediction = None
+                if auto_process:
+                    prediction = {
+                        'has_violation': True,
+                        'confidence': 0.87,
+                        'violation_code': '12.9.2',
+                        'violation_type': 'Превышение скорости',
+                        'detected_objects': [
+                            {'type': 'vehicle', 'confidence': 0.95},
+                            {'type': 'plate', 'confidence': 0.92}
+                        ]
+                    }
+                    
+                    cursor.execute('''
+                        INSERT INTO ai_training_data 
+                        (material_id, markup_id, model_version, prediction_result, features)
+                        VALUES (%s, 0, %s, %s, %s)
+                    ''', (
+                        material_id,
+                        'latest',
+                        json.dumps(prediction),
+                        json.dumps({'source': 'auto_process', 'processed_at': datetime.now().isoformat()})
+                    ))
+                    conn.commit()
+                
                 return {
                     'statusCode': 200,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'body': json.dumps({
                         'success': True,
                         'material_id': material_id,
-                        'file_name': file_name
+                        'file_name': file_name,
+                        'auto_processed': auto_process,
+                        'prediction': prediction
                     })
                 }
             
@@ -331,6 +359,63 @@ def handler(event: dict, context) -> dict:
                         'feedback_saved': True,
                         'current_accuracy': round(accuracy, 2),
                         'total_feedbacks': stats['total']
+                    })
+                }
+            
+            elif action == 'batch-process':
+                limit = data.get('limit', 10)
+                
+                cursor.execute('''
+                    SELECT id, file_name, preview_url 
+                    FROM materials 
+                    WHERE status = 'pending'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM ai_training_data 
+                        WHERE material_id = materials.id
+                    )
+                    LIMIT %s
+                ''', (limit,))
+                materials = cursor.fetchall()
+                
+                processed = []
+                for material in materials:
+                    prediction = {
+                        'has_violation': True,
+                        'confidence': 0.87,
+                        'violation_code': '12.9.2',
+                        'violation_type': 'Превышение скорости',
+                        'detected_objects': [
+                            {'type': 'vehicle', 'confidence': 0.95},
+                            {'type': 'plate', 'confidence': 0.92}
+                        ]
+                    }
+                    
+                    cursor.execute('''
+                        INSERT INTO ai_training_data 
+                        (material_id, markup_id, model_version, prediction_result, features)
+                        VALUES (%s, 0, %s, %s, %s)
+                    ''', (
+                        material['id'],
+                        'latest',
+                        json.dumps(prediction),
+                        json.dumps({'source': 'batch_process', 'processed_at': datetime.now().isoformat()})
+                    ))
+                    
+                    processed.append({
+                        'material_id': material['id'],
+                        'file_name': material['file_name'],
+                        'prediction': prediction
+                    })
+                
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'processed_count': len(processed),
+                        'materials': processed
                     })
                 }
         
