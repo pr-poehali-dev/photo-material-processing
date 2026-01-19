@@ -88,10 +88,10 @@ def list_users() -> dict:
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
-                """SELECT id, email, full_name, role, is_blocked, created_at, last_login 
+                """SELECT id, email, full_name, role, is_blocked, is_approved, created_at, last_login 
                    FROM users 
                    WHERE is_archived = FALSE 
-                   ORDER BY created_at DESC"""
+                   ORDER BY is_approved ASC, created_at DESC"""
             )
             users = cur.fetchall()
             
@@ -139,7 +139,7 @@ def create_user(event: dict) -> dict:
             
             password_hash = hash_password(password)
             cur.execute(
-                "INSERT INTO users (email, password_hash, full_name, role) VALUES (%s, %s, %s, %s) RETURNING id, email, full_name, role, created_at",
+                "INSERT INTO users (email, password_hash, full_name, role, is_approved) VALUES (%s, %s, %s, %s, TRUE) RETURNING id, email, full_name, role, created_at",
                 (email, password_hash, full_name, role)
             )
             user = cur.fetchone()
@@ -192,6 +192,16 @@ def update_user(event: dict) -> dict:
             elif action == 'unblock':
                 cur.execute(
                     "UPDATE users SET is_blocked = FALSE, updated_at = %s WHERE id = %s AND is_archived = FALSE",
+                    (datetime.now(), user_id)
+                )
+            elif action == 'approve':
+                cur.execute(
+                    "UPDATE users SET is_approved = TRUE, updated_at = %s WHERE id = %s AND is_archived = FALSE",
+                    (datetime.now(), user_id)
+                )
+            elif action == 'unapprove':
+                cur.execute(
+                    "UPDATE users SET is_approved = FALSE, updated_at = %s WHERE id = %s AND is_archived = FALSE",
                     (datetime.now(), user_id)
                 )
             elif action == 'update_info':

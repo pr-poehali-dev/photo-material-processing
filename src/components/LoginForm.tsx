@@ -50,7 +50,10 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       } else {
         setIsLogin(true);
         setError('');
-        alert('Регистрация успешна! Теперь войдите в систему.');
+        setEmail('');
+        setPassword('');
+        setFullName('');
+        alert(data.message || 'Регистрация успешна! Ожидайте подтверждения администратора.');
       }
     } catch (err) {
       setError('Ошибка соединения с сервером');

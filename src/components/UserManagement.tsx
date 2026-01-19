@@ -10,6 +10,7 @@ interface User {
   full_name: string;
   role: string;
   is_blocked: boolean;
+  is_approved: boolean;
   created_at: string;
   last_login: string | null;
 }
@@ -162,6 +163,28 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
     }
   };
 
+  const handleApproveUser = async (userId: number, approve: boolean) => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/c651d6b3-f910-4eb3-b30d-6aa63ac75d21', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          action: approve ? 'approve' : 'unapprove',
+        }),
+      });
+
+      if (response.ok) {
+        loadUsers();
+      }
+    } catch (error) {
+      alert('Ошибка');
+    }
+  };
+
   const handleDeleteUser = async (userId: number) => {
     if (!confirm('Вы уверены, что хотите удалить пользователя?')) return;
 
@@ -293,6 +316,9 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
                       {user.role === 'admin' && (
                         <span className="px-2 py-0.5 text-xs bg-purple-600 text-white rounded">Admin</span>
                       )}
+                      {!user.is_approved && (
+                        <span className="px-2 py-0.5 text-xs bg-yellow-600 text-white rounded animate-pulse">Ожидает подтверждения</span>
+                      )}
                       {user.is_blocked && (
                         <span className="px-2 py-0.5 text-xs bg-red-600 text-white rounded">Заблокирован</span>
                       )}
@@ -304,10 +330,21 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
                     </p>
                   </div>
                   <div className="flex gap-2">
+                    {!user.is_approved && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleApproveUser(user.id, true)}
+                        className="bg-green-600 hover:bg-green-700"
+                        title="Подтвердить учетную запись"
+                      >
+                        <Icon name="CheckCircle2" size={16} />
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       onClick={() => handleChangePassword(user.id)}
                       className="bg-blue-600 hover:bg-blue-700"
+                      title="Изменить пароль"
                     >
                       <Icon name="Key" size={16} />
                     </Button>
@@ -315,6 +352,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
                       size="sm"
                       onClick={() => handleBlockUser(user.id, !user.is_blocked)}
                       className={user.is_blocked ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}
+                      title={user.is_blocked ? 'Разблокировать' : 'Заблокировать'}
                     >
                       <Icon name={user.is_blocked ? 'Unlock' : 'Lock'} size={16} />
                     </Button>
@@ -326,6 +364,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
                         loadLogs(user.id);
                       }}
                       className="bg-slate-600 hover:bg-slate-700"
+                      title="Логи входа"
                     >
                       <Icon name="FileText" size={16} />
                     </Button>
@@ -333,6 +372,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
                       size="sm"
                       onClick={() => handleDeleteUser(user.id)}
                       className="bg-red-600 hover:bg-red-700"
+                      title="Удалить пользователя"
                     >
                       <Icon name="Trash2" size={16} />
                     </Button>

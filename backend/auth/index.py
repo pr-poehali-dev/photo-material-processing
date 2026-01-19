@@ -88,7 +88,7 @@ def register(event: dict) -> dict:
             
             password_hash = hash_password(password)
             cur.execute(
-                "INSERT INTO users (email, password_hash, full_name) VALUES (%s, %s, %s) RETURNING id, email, full_name, role",
+                "INSERT INTO users (email, password_hash, full_name, is_approved) VALUES (%s, %s, %s, FALSE) RETURNING id, email, full_name, role, is_approved",
                 (email, password_hash, full_name)
             )
             user = cur.fetchone()
@@ -99,6 +99,7 @@ def register(event: dict) -> dict:
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({
                     'success': True,
+                    'message': 'Регистрация успешна. Ожидайте подтверждения администратора.',
                     'user': dict(user)
                 })
             }
@@ -118,7 +119,7 @@ def login(event: dict) -> dict:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             password_hash = hash_password(password)
             cur.execute(
-                "SELECT id, email, full_name, role, is_blocked FROM users WHERE email = %s AND password_hash = %s AND is_archived = FALSE",
+                "SELECT id, email, full_name, role, is_blocked, is_approved FROM users WHERE email = %s AND password_hash = %s AND is_archived = FALSE",
                 (email, password_hash)
             )
             user = cur.fetchone()
@@ -133,6 +134,18 @@ def login(event: dict) -> dict:
                     'statusCode': 401,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'body': json.dumps({'error': 'Неверный email или пароль'})
+                }
+            
+            if not user['is_approved']:
+                cur.execute(
+                    "INSERT INTO login_logs (user_id, email, ip_address, user_agent, success, failure_reason) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (user['id'], email, ip_address, user_agent, False, 'Учетная запись не подтверждена администратором')
+                )
+                conn.commit()
+                return {
+                    'statusCode': 403,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Учетная запись еще не подтверждена администратором'})
                 }
             
             if user['is_blocked']:
@@ -224,7 +237,7 @@ def verify_session(event: dict) -> dict:
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
-                """SELECT u.id, u.email, u.full_name, u.role, u.is_blocked 
+                """SELECT u.id, u.email, u.full_name, u.role, u.is_blocked, u.is_approved 
                    FROM user_sessions s 
                    JOIN users u ON s.user_id = u.id 
                    WHERE s.session_token = %s AND s.expires_at > %s AND u.is_archived = FALSE""",
