@@ -44,6 +44,8 @@ interface Material {
     }>;
   };
   isProcessingAI?: boolean;
+  parameterValues?: ViolationParameterValue[];
+  markupData?: any;
 }
 
 const mockMaterials: Material[] = [
@@ -400,6 +402,30 @@ export default function Index() {
     }
   }, [statusFilter]);
 
+  useEffect(() => {
+    try {
+      if (sessionToken) {
+        localStorage.setItem('session_token', sessionToken);
+      } else {
+        localStorage.removeItem('session_token');
+      }
+    } catch (error) {
+      console.error('Ошибка сохранения токена:', error);
+    }
+  }, [sessionToken]);
+
+  useEffect(() => {
+    try {
+      if (currentUser) {
+        localStorage.setItem('user', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('user');
+      }
+    } catch (error) {
+      console.error('Ошибка сохранения пользователя:', error);
+    }
+  }, [currentUser]);
+
   const handleSelectSourcePath = async () => {
     try {
       const input = document.createElement('input');
@@ -586,15 +612,12 @@ export default function Index() {
             violationType: violationCode
               ? violationCodes.find(v => v.code === violationCode)?.description
               : undefined,
+            parameterValues: m.id === id ? parameterValues : m.parameterValues,
           }
         : m
     );
     
     setMaterials(updatedMaterials);
-    localStorage.setItem('materials', JSON.stringify(updatedMaterials.map(m => ({
-      ...m,
-      tarFile: undefined,
-    }))));
     
     if (selectedMaterial?.id === id) {
       setSelectedMaterial(prev => 
@@ -605,6 +628,7 @@ export default function Index() {
           violationType: violationCode
             ? violationCodes.find(v => v.code === violationCode)?.description
             : undefined,
+          parameterValues,
         } : null
       );
     }
@@ -1020,7 +1044,10 @@ export default function Index() {
                 {materials.filter(m => statusFilter.has(m.status)).map(material => (
                   <div
                     key={material.id}
-                    onClick={() => setSelectedMaterial(material)}
+                    onClick={() => {
+                      setSelectedMaterial(material);
+                      setParameterValues(material.parameterValues || []);
+                    }}
                     className={`p-4 rounded-lg border transition-all cursor-pointer hover-scale ${
                       selectedMaterial?.id === material.id
                         ? 'bg-slate-700/50 border-sky-500'
@@ -1248,7 +1275,15 @@ export default function Index() {
                         materialId={selectedMaterial.id}
                         imageUrl={selectedMaterial.images.main}
                         violationCodes={violationCodes}
+                        existingMarkup={selectedMaterial.markupData}
                         onSave={async (markup) => {
+                          setMaterials(prev => prev.map(m => 
+                            m.id === selectedMaterial.id 
+                              ? { ...m, markupData: markup }
+                              : m
+                          ));
+                          setSelectedMaterial(prev => prev ? { ...prev, markupData: markup } : null);
+                          
                           try {
                             const response = await fetch('https://functions.poehali.dev/9128cf27-3d45-4ac1-b0a2-0c2935594a9e', {
                               method: 'POST',
