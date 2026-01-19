@@ -1,12 +1,12 @@
-import AIAccuracyStats from '@/components/AIAccuracyStats';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import AIAccuracyStats from '@/components/AIAccuracyStats';
 
 interface AnalyticsProps {
   refreshTrigger?: number;
 }
 
-const Analytics = ({ refreshTrigger }: AnalyticsProps) => {
+const Analytics = ({ refreshTrigger = 0 }: AnalyticsProps) => {
   return (
     <div className="h-full overflow-y-auto space-y-6 p-6 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
       <div className="flex items-center gap-3 mb-6">
