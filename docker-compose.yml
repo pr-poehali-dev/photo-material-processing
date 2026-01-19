@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # Frontend application
+  app:
+    build: .
+    container_name: trafficvision-app
+    ports:
+      - "80:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - trafficvision-network
+    restart: unless-stopped
+
+  # PostgreSQL database
+  db:
+    image: postgres:16-alpine
+    container_name: trafficvision-db
+    environment:
+      POSTGRES_DB: trafficvision
+      POSTGRES_USER: trafficvision_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me_in_production}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db_migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - trafficvision-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trafficvision_user -d trafficvision"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: trafficvision-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@trafficvision.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - trafficvision-network
+    restart: unless-stopped
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+networks:
+  trafficvision-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
