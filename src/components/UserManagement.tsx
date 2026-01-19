@@ -49,7 +49,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
       const response = await fetch(
         'https://functions.poehali.dev/c651d6b3-f910-4eb3-b30d-6aa63ac75d21?action=list',
         {
-          headers: { Authorization: `Bearer ${sessionToken}` },
+          headers: { 'X-Auth-Token': sessionToken },
         }
       );
       const data = await response.json();
@@ -70,7 +70,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
         ? `https://functions.poehali.dev/c651d6b3-f910-4eb3-b30d-6aa63ac75d21?action=logs&user_id=${userId}`
         : 'https://functions.poehali.dev/c651d6b3-f910-4eb3-b30d-6aa63ac75d21?action=logs';
       const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${sessionToken}` },
+        headers: { 'X-Auth-Token': sessionToken },
       });
       const data = await response.json();
       if (response.ok) {
@@ -93,7 +93,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionToken}`,
+          'X-Auth-Token': sessionToken,
         },
         body: JSON.stringify(newUser),
       });
@@ -118,7 +118,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionToken}`,
+          'X-Auth-Token': sessionToken,
         },
         body: JSON.stringify({
           user_id: userId,
@@ -146,7 +146,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionToken}`,
+          'X-Auth-Token': sessionToken,
         },
         body: JSON.stringify({
           user_id: userId,
@@ -169,7 +169,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionToken}`,
+          'X-Auth-Token': sessionToken,
         },
         body: JSON.stringify({
           user_id: userId,
@@ -193,7 +193,7 @@ const UserManagement = ({ sessionToken }: UserManagementProps) => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionToken}`,
+          'X-Auth-Token': sessionToken,
         },
         body: JSON.stringify({ user_id: userId }),
       });

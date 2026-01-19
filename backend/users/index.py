@@ -45,8 +45,11 @@ def handler(event: dict, context) -> dict:
             'body': ''
         }
     
-    auth_header = event.get('headers', {}).get('x-authorization', '') or event.get('headers', {}).get('authorization', '')
-    token = auth_header.replace('Bearer ', '') if auth_header else ''
+    headers = event.get('headers', {})
+    token = (headers.get('x-auth-token', '') or 
+             headers.get('X-Auth-Token', '') or
+             headers.get('authorization', '').replace('Bearer ', '') or
+             headers.get('Authorization', '').replace('Bearer ', ''))
     
     admin = verify_admin(token)
     if not admin:
