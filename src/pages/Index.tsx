@@ -835,8 +835,6 @@ export default function Index() {
           </div>
         </div>
 
-        <AIAccuracyStats refreshTrigger={materials.length} />
-
         <div className="grid grid-cols-6 gap-4 mb-6 mt-6">
           <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-6 hover-scale">
             <div className="flex items-center justify-between">
