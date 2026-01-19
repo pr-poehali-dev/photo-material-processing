@@ -13,6 +13,7 @@ import {
 import Icon from '@/components/ui/icon';
 import ViolationCodesManager, { ViolationCode } from '@/components/ViolationCodesManager';
 import { parseTarFiles, TarImages } from '@/utils/tarParser';
+import { loadMaterials, saveMaterials } from '@/utils/materialsStorage';
 import PhotoGallery from '@/components/PhotoGallery';
 import ViolationMarkup from '@/components/ViolationMarkup';
 import ViolationParameters, { defaultParametersByCode, ViolationParameterValue } from '@/components/ViolationParameters';
@@ -95,7 +96,6 @@ const mockMaterials: Material[] = [
 ];
 
 const STORAGE_KEY = 'trafficvision_violation_codes';
-const MATERIALS_KEY = 'trafficvision_materials';
 const SOURCE_PATH_KEY = 'trafficvision_source_path';
 const OUTPUT_PATH_KEY = 'trafficvision_output_path';
 const STATUS_FILTER_KEY = 'trafficvision_status_filter';
@@ -310,18 +310,7 @@ const getStoredCodes = (): ViolationCode[] => {
   ];
 };
 
-const getStoredMaterials = (): Material[] => {
-  try {
-    const stored = localStorage.getItem('materials');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed.length > 0 ? parsed : mockMaterials;
-    }
-  } catch (error) {
-    console.error('Ошибка загрузки материалов:', error);
-  }
-  return mockMaterials;
-};
+
 
 const getStoredStatusFilter = (): Set<Material['status']> => {
   try {
@@ -336,7 +325,8 @@ const getStoredStatusFilter = (): Set<Material['status']> => {
 };
 
 export default function Index() {
-  const [materials, setMaterials] = useState<Material[]>(getStoredMaterials);
+  const [materials, setMaterials] = useState<Material[]>(mockMaterials);
+  const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -370,16 +360,21 @@ export default function Index() {
   }, [violationCodes]);
 
   useEffect(() => {
-    try {
-      const materialsToSave = materials.map(m => ({
-        ...m,
-        tarFile: undefined,
-      }));
-      localStorage.setItem(MATERIALS_KEY, JSON.stringify(materialsToSave));
-    } catch (error) {
-      console.error('Ошибка сохранения материалов:', error);
+    const initMaterials = async () => {
+      const loaded = await loadMaterials();
+      if (loaded.length > 0) {
+        setMaterials(loaded);
+      }
+      setMaterialsLoaded(true);
+    };
+    initMaterials();
+  }, []);
+
+  useEffect(() => {
+    if (materialsLoaded) {
+      saveMaterials(materials);
     }
-  }, [materials]);
+  }, [materials, materialsLoaded]);
 
   useEffect(() => {
     try {
