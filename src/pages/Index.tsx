@@ -101,6 +101,8 @@ const STORAGE_KEY = 'trafficvision_violation_codes';
 const SOURCE_PATH_KEY = 'trafficvision_source_path';
 const OUTPUT_PATH_KEY = 'trafficvision_output_path';
 const STATUS_FILTER_KEY = 'trafficvision_status_filter';
+const SELECTED_MATERIALS_KEY = 'trafficvision_selected_materials';
+const SELECTED_MATERIAL_KEY = 'trafficvision_selected_material';
 
 const getStoredCodes = (): ViolationCode[] => {
   try {
@@ -329,7 +331,14 @@ const getStoredStatusFilter = (): Set<Material['status']> => {
 export default function Index() {
   const [materials, setMaterials] = useState<Material[]>(mockMaterials);
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(() => {
+    try {
+      const stored = localStorage.getItem(SELECTED_MATERIAL_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isCodesManagerOpen, setIsCodesManagerOpen] = useState(false);
@@ -338,7 +347,14 @@ export default function Index() {
   const [outputPath, setOutputPath] = useState<string>(() => localStorage.getItem(OUTPUT_PATH_KEY) || '');
   const [statusFilter, setStatusFilter] = useState<Set<Material['status']>>(getStoredStatusFilter);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedMaterialIds, setSelectedMaterialIds] = useState<Set<string>>(new Set());
+  const [selectedMaterialIds, setSelectedMaterialIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem(SELECTED_MATERIALS_KEY);
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const [showMarkup, setShowMarkup] = useState(false);
   const [showParameters, setShowParameters] = useState(false);
   const [parameterValues, setParameterValues] = useState<ViolationParameterValue[]>([]);
@@ -366,6 +382,20 @@ export default function Index() {
       const loaded = await loadMaterials();
       if (loaded.length > 0) {
         setMaterials(loaded);
+        
+        const storedSelectedMaterial = localStorage.getItem(SELECTED_MATERIAL_KEY);
+        if (storedSelectedMaterial) {
+          try {
+            const parsed = JSON.parse(storedSelectedMaterial);
+            const found = loaded.find(m => m.id === parsed.id);
+            if (found) {
+              setSelectedMaterial(found);
+              setParameterValues(found.parameterValues || []);
+            }
+          } catch (error) {
+            console.error('Ошибка восстановления выбранного материала:', error);
+          }
+        }
       }
       setMaterialsLoaded(true);
     };
@@ -425,6 +455,26 @@ export default function Index() {
       console.error('Ошибка сохранения пользователя:', error);
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SELECTED_MATERIALS_KEY, JSON.stringify(Array.from(selectedMaterialIds)));
+    } catch (error) {
+      console.error('Ошибка сохранения выбранных материалов:', error);
+    }
+  }, [selectedMaterialIds]);
+
+  useEffect(() => {
+    try {
+      if (selectedMaterial) {
+        localStorage.setItem(SELECTED_MATERIAL_KEY, JSON.stringify(selectedMaterial));
+      } else {
+        localStorage.removeItem(SELECTED_MATERIAL_KEY);
+      }
+    } catch (error) {
+      console.error('Ошибка сохранения выбранного материала:', error);
+    }
+  }, [selectedMaterial]);
 
   const handleSelectSourcePath = async () => {
     try {
