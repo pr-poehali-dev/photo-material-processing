@@ -198,7 +198,7 @@ def login(event: dict) -> dict:
         conn.close()
 
 def logout(event: dict) -> dict:
-    auth_header = event.get('headers', {}).get('authorization', '')
+    auth_header = event.get('headers', {}).get('x-authorization', '') or event.get('headers', {}).get('authorization', '')
     token = auth_header.replace('Bearer ', '') if auth_header else ''
     
     if not token:
@@ -223,7 +223,7 @@ def logout(event: dict) -> dict:
         conn.close()
 
 def verify_session(event: dict) -> dict:
-    auth_header = event.get('headers', {}).get('authorization', '')
+    auth_header = event.get('headers', {}).get('x-authorization', '') or event.get('headers', {}).get('authorization', '')
     token = auth_header.replace('Bearer ', '') if auth_header else ''
     
     if not token:
