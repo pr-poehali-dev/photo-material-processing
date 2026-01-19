@@ -341,6 +341,7 @@ export default function Index() {
   });
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSyncingDB, setIsSyncingDB] = useState(false);
   const [isCodesManagerOpen, setIsCodesManagerOpen] = useState(false);
   const [violationCodes, setViolationCodes] = useState<ViolationCode[]>(getStoredCodes());
   const [sourcePath, setSourcePath] = useState<string>(() => localStorage.getItem(SOURCE_PATH_KEY) || '');
@@ -379,24 +380,51 @@ export default function Index() {
 
   useEffect(() => {
     const initMaterials = async () => {
-      const loaded = await loadMaterials();
-      if (loaded.length > 0) {
-        setMaterials(loaded);
+      try {
+        const response = await fetch('https://functions.poehali.dev/3825a25a-1874-4f7f-89da-9e99f8a60190', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'list' })
+        });
         
-        const storedSelectedMaterial = localStorage.getItem(SELECTED_MATERIAL_KEY);
-        if (storedSelectedMaterial) {
-          try {
-            const parsed = JSON.parse(storedSelectedMaterial);
-            const found = loaded.find(m => m.id === parsed.id);
-            if (found) {
-              setSelectedMaterial(found);
-              setParameterValues(found.parameterValues || []);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.materials && data.materials.length > 0) {
+            setMaterials(data.materials);
+            
+            const storedSelectedMaterial = localStorage.getItem(SELECTED_MATERIAL_KEY);
+            if (storedSelectedMaterial) {
+              try {
+                const parsed = JSON.parse(storedSelectedMaterial);
+                const found = data.materials.find((m: Material) => m.id === parsed.id);
+                if (found) {
+                  setSelectedMaterial(found);
+                  setParameterValues(found.parameterValues || []);
+                }
+              } catch (error) {
+                console.error('Ошибка восстановления выбранного материала:', error);
+              }
             }
-          } catch (error) {
-            console.error('Ошибка восстановления выбранного материала:', error);
+          } else {
+            const loaded = await loadMaterials();
+            if (loaded.length > 0) {
+              setMaterials(loaded);
+            }
+          }
+        } else {
+          const loaded = await loadMaterials();
+          if (loaded.length > 0) {
+            setMaterials(loaded);
           }
         }
+      } catch (error) {
+        console.error('Ошибка загрузки из БД:', error);
+        const loaded = await loadMaterials();
+        if (loaded.length > 0) {
+          setMaterials(loaded);
+        }
       }
+      
       setMaterialsLoaded(true);
     };
     initMaterials();
@@ -405,6 +433,34 @@ export default function Index() {
   useEffect(() => {
     if (materialsLoaded) {
       saveMaterials(materials);
+      
+      const syncToDB = async () => {
+        setIsSyncingDB(true);
+        try {
+          await fetch('https://functions.poehali.dev/3825a25a-1874-4f7f-89da-9e99f8a60190', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              action: 'bulk_create',
+              materials: materials.map(m => ({
+                id: m.id,
+                fileName: m.fileName,
+                timestamp: m.timestamp,
+                preview: m.preview,
+                status: m.status,
+                violationType: m.violationType,
+                violationCode: m.violationCode
+              }))
+            })
+          });
+        } catch (error) {
+          console.error('Ошибка синхронизации с БД:', error);
+        } finally {
+          setIsSyncingDB(false);
+        }
+      };
+      
+      syncToDB();
     }
   }, [materials, materialsLoaded]);
 
@@ -740,10 +796,25 @@ export default function Index() {
     setSelectedMaterialIds(new Set());
   };
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => {
     if (selectedMaterialIds.size === 0) return;
     
     if (confirm(`Удалить выбранные материалы (${selectedMaterialIds.size} шт.)?`)) {
+      const idsToDelete = Array.from(selectedMaterialIds);
+      
+      try {
+        await fetch('https://functions.poehali.dev/3825a25a-1874-4f7f-89da-9e99f8a60190', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'delete',
+            ids: idsToDelete
+          })
+        });
+      } catch (error) {
+        console.error('Ошибка удаления из БД:', error);
+      }
+      
       setMaterials(prev => prev.filter(m => !selectedMaterialIds.has(m.id)));
       if (selectedMaterial && selectedMaterialIds.has(selectedMaterial.id)) {
         setSelectedMaterial(null);
@@ -860,6 +931,12 @@ export default function Index() {
                 <Icon name="Download" size={16} className="mr-2" />
                 Экспорт реестра
               </Button>
+              {isSyncingDB && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <Icon name="Database" size={16} className="text-blue-400 animate-pulse" />
+                  <span className="text-blue-400 text-sm">Синхронизация с БД...</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

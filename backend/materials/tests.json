@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "name": "List materials",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "list"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "materials": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create material",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "create",
+        "material": {
+          "id": "test-123",
+          "fileName": "test.tar",
+          "timestamp": "2026-01-19T10:00:00",
+          "preview": "https://example.com/preview.jpg",
+          "status": "pending"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
