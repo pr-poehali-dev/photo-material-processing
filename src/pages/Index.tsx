@@ -1424,7 +1424,7 @@ export default function Index() {
                   <div className="border-t border-slate-700 pt-4 space-y-3">
                     <Button 
                       className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700"
-                      onClick={() => updateMaterialStatus(selectedMaterial.id, 'processed')}
+                      onClick={() => updateMaterialStatus(selectedMaterial.id, 'processed', selectedMaterial.violationCode)}
                     >
                       <Icon name="CheckCheck" size={16} className="mr-2" />
                       Обработать материал
