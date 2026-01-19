@@ -19,6 +19,7 @@ import ViolationParameters, { defaultParametersByCode, ViolationParameterValue }
 import AITrainingPanel from '@/components/AITrainingPanel';
 import AIAccuracyStats from '@/components/AIAccuracyStats';
 import MarkupInstructions from '@/components/MarkupInstructions';
+import SettingsPanel from '@/components/SettingsPanel';
 
 interface Material {
   id: string;
@@ -351,6 +352,12 @@ export default function Index() {
   const [parameterValues, setParameterValues] = useState<ViolationParameterValue[]>([]);
   const [isAITrainingOpen, setIsAITrainingOpen] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [sessionToken, setSessionToken] = useState<string | null>(() => localStorage.getItem('session_token'));
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
 
   useEffect(() => {
     try {
@@ -757,6 +764,14 @@ export default function Index() {
               >
                 <Icon name="Brain" size={16} className="mr-2" />
                 Обучение ИИ
+              </Button>
+              <Button 
+                variant="outline" 
+                className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                onClick={() => setIsSettingsOpen(true)}
+              >
+                <Icon name="Settings" size={16} className="mr-2" />
+                Настройки
               </Button>
               <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
                 <Icon name="FileCode" size={16} className="mr-2" />
@@ -1439,6 +1454,14 @@ export default function Index() {
 
       {showInstructions && (
         <MarkupInstructions onClose={() => setShowInstructions(false)} />
+      )}
+
+      {isSettingsOpen && sessionToken && currentUser && (
+        <SettingsPanel
+          onClose={() => setIsSettingsOpen(false)}
+          sessionToken={sessionToken}
+          currentUser={currentUser}
+        />
       )}
     </div>
   );
