@@ -17,9 +17,9 @@ import PhotoGallery from '@/components/PhotoGallery';
 import ViolationMarkup from '@/components/ViolationMarkup';
 import ViolationParameters, { defaultParametersByCode, ViolationParameterValue } from '@/components/ViolationParameters';
 import AITrainingPanel from '@/components/AITrainingPanel';
-import AIAccuracyStats from '@/components/AIAccuracyStats';
 import MarkupInstructions from '@/components/MarkupInstructions';
 import SettingsPanel from '@/components/SettingsPanel';
+import Analytics from '@/components/Analytics';
 
 interface Material {
   id: string;
@@ -353,6 +353,8 @@ export default function Index() {
   const [isAITrainingOpen, setIsAITrainingOpen] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [aiRefreshTrigger, setAiRefreshTrigger] = useState(0);
   const [sessionToken, setSessionToken] = useState<string | null>(() => localStorage.getItem('session_token'));
   const [currentUser, setCurrentUser] = useState<any>(() => {
     const stored = localStorage.getItem('user');
@@ -764,6 +766,14 @@ export default function Index() {
               >
                 <Icon name="Brain" size={16} className="mr-2" />
                 Обучение ИИ
+              </Button>
+              <Button 
+                variant="outline" 
+                className="border-green-500 text-green-400 hover:bg-green-500/10"
+                onClick={() => setIsAnalyticsOpen(true)}
+              >
+                <Icon name="LineChart" size={16} className="mr-2" />
+                Аналитика
               </Button>
               <Button 
                 variant="outline" 
@@ -1462,6 +1472,30 @@ export default function Index() {
           sessionToken={sessionToken}
           currentUser={currentUser}
         />
+      )}
+
+      {isAnalyticsOpen && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-6">
+          <div className="w-full max-w-6xl h-[90vh] bg-slate-900 rounded-xl border border-slate-700 flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-slate-700">
+              <div className="flex items-center gap-3">
+                <Icon name="LineChart" size={28} className="text-purple-400" />
+                <h2 className="text-2xl font-bold text-white">Аналитика</h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsAnalyticsOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <Icon name="X" size={20} />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <Analytics refreshTrigger={aiRefreshTrigger} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
