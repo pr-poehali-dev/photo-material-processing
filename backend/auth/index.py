@@ -17,7 +17,6 @@ def get_db_connection():
 
 def handler(event: dict, context) -> dict:
     '''API для аутентификации: регистрация, вход, проверка сессии, выход'''
-    
     method = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
