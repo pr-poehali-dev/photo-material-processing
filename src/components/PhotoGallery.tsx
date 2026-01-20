@@ -162,12 +162,12 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
           className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setSelectedImageIndex(null)}
         >
-          <div className="relative max-w-7xl max-h-[90vh] w-full">
+          <div className="relative w-full h-full flex flex-col items-center justify-center">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSelectedImageIndex(null)}
-              className="absolute -top-12 right-0 text-white hover:bg-white/10 z-10"
+              className="absolute top-4 right-4 text-white hover:bg-white/10 z-10"
             >
               <Icon name="X" size={24} />
             </Button>
@@ -200,14 +200,16 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
               </Button>
             )}
 
-            <div className="bg-slate-900 rounded-lg overflow-hidden">
-              <img
-                src={selectedPhoto.image}
-                alt={selectedPhoto.title}
-                className="w-full h-auto max-h-[85vh] object-contain"
-                onClick={(e) => e.stopPropagation()}
-              />
-              <div className="p-3 border-t border-slate-700 mt-2 flex items-center justify-between">
+            <div className="flex flex-col max-w-7xl w-full max-h-[90vh]">
+              <div className="bg-slate-900 rounded-t-lg overflow-hidden flex-1 flex items-center justify-center min-h-0">
+                <img
+                  src={selectedPhoto.image}
+                  alt={selectedPhoto.title}
+                  className="max-w-full max-h-full object-contain"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              <div className="bg-slate-900 rounded-b-lg p-3 border-t border-slate-700 flex items-center justify-between flex-shrink-0">
                 <div>
                   <h3 className="text-white font-semibold">{selectedPhoto.title}</h3>
                   <p className="text-slate-400 text-sm mt-1">{fileName}</p>
