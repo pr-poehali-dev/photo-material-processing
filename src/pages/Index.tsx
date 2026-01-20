@@ -360,6 +360,9 @@ export default function Index() {
   const [showParameters, setShowParameters] = useState(false);
   const [parameterValues, setParameterValues] = useState<ViolationParameterValue[]>([]);
   const [isAITrainingOpen, setIsAITrainingOpen] = useState(false);
+  const [autoProcessEnabled, setAutoProcessEnabled] = useState(() => {
+    return localStorage.getItem('autoProcessEnabled') === 'true';
+  });
   const [showInstructions, setShowInstructions] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
@@ -578,6 +581,12 @@ export default function Index() {
           setMaterials(prev => [...newMaterials, ...prev]);
           setIsUploading(false);
           
+          if (autoProcessEnabled) {
+            newMaterials.forEach(async (material) => {
+              await processWithAI(material.id);
+            });
+          }
+          
           const violationsFound = newMaterials.filter(m => m.violationCode).length;
           alert(`Загружено ${tarFiles.length} TAR-архивов\nОбнаружено нарушений: ${violationsFound}`);
         }
@@ -647,16 +656,18 @@ export default function Index() {
             status: 'pending',
             images: metadata.images,
             tarFile: tarFiles[index],
-            isProcessingAI: true,
+            isProcessingAI: autoProcessEnabled,
           };
         });
 
         setMaterials(prev => [...newMaterials, ...prev]);
         setIsUploading(false);
         
-        newMaterials.forEach(async (material) => {
-          await processWithAI(material.id);
-        });
+        if (autoProcessEnabled) {
+          newMaterials.forEach(async (material) => {
+            await processWithAI(material.id);
+          });
+        }
         
         const violationsFound = newMaterials.filter(m => m.violationCode).length;
         alert(`Загружено ${tarFiles.length} TAR-архивов\nОбнаружено нарушений: ${violationsFound}`);
@@ -1691,6 +1702,10 @@ export default function Index() {
         isOpen={isAITrainingOpen}
         onClose={() => setIsAITrainingOpen(false)}
         violationCodes={violationCodes}
+        onAutoProcessToggle={(enabled) => {
+          setAutoProcessEnabled(enabled);
+          localStorage.setItem('autoProcessEnabled', String(enabled));
+        }}
       />
 
       {showInstructions && (

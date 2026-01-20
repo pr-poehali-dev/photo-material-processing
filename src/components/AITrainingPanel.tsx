@@ -34,9 +34,10 @@ interface AITrainingPanelProps {
   isOpen: boolean;
   onClose: () => void;
   violationCodes: ViolationCode[];
+  onAutoProcessToggle?: (enabled: boolean) => void;
 }
 
-const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelProps) => {
+const AITrainingPanel = ({ isOpen, onClose, violationCodes, onAutoProcessToggle }: AITrainingPanelProps) => {
   const [metrics, setMetrics] = useState<AIMetrics[]>([]);
   const [trainingData, setTrainingData] = useState<TrainingDataItem[]>([]);
   const [datasetStats, setDatasetStats] = useState<any>(null);
@@ -215,29 +216,9 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                   const newValue = !autoProcessEnabled;
                   setAutoProcessEnabled(newValue);
                   localStorage.setItem('autoProcessEnabled', String(newValue));
-                }}
-                className={`min-w-[100px] ${autoProcessEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-700 hover:bg-slate-600'}`}
-              >
-                <Icon name={autoProcessEnabled ? 'Check' : 'X'} size={16} className="mr-2" />
-                {autoProcessEnabled ? 'Включено' : 'Выключено'}
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="bg-slate-900/50 border-slate-700 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Icon name="Zap" size={20} className={autoProcessEnabled ? 'text-green-400' : 'text-slate-400'} />
-                <div>
-                  <h3 className="font-semibold text-white">Автоматическая обработка</h3>
-                  <p className="text-xs text-slate-400">ИИ будет анализировать загружаемые материалы автоматически</p>
-                </div>
-              </div>
-              <Button
-                onClick={() => {
-                  const newValue = !autoProcessEnabled;
-                  setAutoProcessEnabled(newValue);
-                  localStorage.setItem('autoProcessEnabled', String(newValue));
+                  if (onAutoProcessToggle) {
+                    onAutoProcessToggle(newValue);
+                  }
                 }}
                 className={`min-w-[100px] ${autoProcessEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-700 hover:bg-slate-600'}`}
               >
