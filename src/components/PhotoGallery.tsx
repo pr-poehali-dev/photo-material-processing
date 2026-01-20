@@ -200,11 +200,11 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
               </Button>
             )}
 
-            <div className="bg-slate-900 rounded-lg p-2">
+            <div className="bg-slate-900 rounded-lg overflow-hidden">
               <img
                 src={selectedPhoto.image}
                 alt={selectedPhoto.title}
-                className="w-full h-auto max-h-[80vh] object-contain rounded"
+                className="w-full h-auto max-h-[80vh] object-contain"
                 onClick={(e) => e.stopPropagation()}
               />
               <div className="p-3 border-t border-slate-700 mt-2 flex items-center justify-between">
