@@ -200,21 +200,21 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
               </Button>
             )}
 
-            <div className="flex flex-col max-w-7xl w-full max-h-[90vh]">
-              <div className="bg-slate-900 rounded-t-lg overflow-hidden flex-1 flex items-center justify-center min-h-0">
+            <div className="flex flex-col w-full h-[calc(100vh-2rem)] max-w-[95vw]">
+              <div className="bg-slate-900/50 rounded-t-lg overflow-hidden flex-1 flex items-center justify-center p-4">
                 <img
                   src={selectedPhoto.image}
                   alt={selectedPhoto.title}
-                  className="max-w-full max-h-full object-contain"
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
                   onClick={(e) => e.stopPropagation()}
                 />
               </div>
-              <div className="bg-slate-900 rounded-b-lg p-3 border-t border-slate-700 flex items-center justify-between flex-shrink-0">
+              <div className="bg-slate-900 rounded-b-lg p-4 border-t border-slate-700 flex items-center justify-between flex-shrink-0">
                 <div>
-                  <h3 className="text-white font-semibold">{selectedPhoto.title}</h3>
+                  <h3 className="text-white font-semibold text-lg">{selectedPhoto.title}</h3>
                   <p className="text-slate-400 text-sm mt-1">{fileName}</p>
                 </div>
-                <div className="text-slate-400 text-sm">
+                <div className="text-slate-400 text-sm font-medium">
                   {selectedImageIndex !== null && `${selectedImageIndex + 1} / ${availablePhotos.length}`}
                 </div>
               </div>
