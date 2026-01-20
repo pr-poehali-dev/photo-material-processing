@@ -159,15 +159,15 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
 
       {selectedPhoto && (
         <div 
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
           onClick={() => setSelectedImageIndex(null)}
         >
-          <div className="relative w-full h-full flex flex-col items-center justify-center">
+          <div className="relative w-full h-full flex flex-col">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSelectedImageIndex(null)}
-              className="absolute top-4 right-4 text-white hover:bg-white/10 z-10"
+              className="absolute top-2 right-2 text-white hover:bg-white/10 z-10 bg-black/50 backdrop-blur-sm"
             >
               <Icon name="X" size={24} />
             </Button>
@@ -180,7 +180,7 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
                   e.stopPropagation();
                   setSelectedImageIndex(selectedImageIndex - 1);
                 }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 bg-black/40 backdrop-blur-sm h-16 w-16 rounded-full z-10"
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 bg-black/50 backdrop-blur-sm h-14 w-14 rounded-full z-10"
               >
                 <Icon name="ChevronLeft" size={32} />
               </Button>
@@ -194,29 +194,28 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
                   e.stopPropagation();
                   setSelectedImageIndex(selectedImageIndex + 1);
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 bg-black/40 backdrop-blur-sm h-16 w-16 rounded-full z-10"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 bg-black/50 backdrop-blur-sm h-14 w-14 rounded-full z-10"
               >
                 <Icon name="ChevronRight" size={32} />
               </Button>
             )}
 
-            <div className="flex flex-col w-full h-[calc(100vh-2rem)] max-w-[95vw]">
-              <div className="bg-slate-900/50 rounded-t-lg overflow-hidden flex-1 flex items-center justify-center p-4">
-                <img
-                  src={selectedPhoto.image}
-                  alt={selectedPhoto.title}
-                  className="max-w-full max-h-full w-auto h-auto object-contain"
-                  onClick={(e) => e.stopPropagation()}
-                />
+            <div className="flex-1 flex items-center justify-center px-20 py-4">
+              <img
+                src={selectedPhoto.image}
+                alt={selectedPhoto.title}
+                className="max-w-full max-h-full w-auto h-auto object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+            
+            <div className="bg-black/80 backdrop-blur-sm p-4 flex items-center justify-between flex-shrink-0 border-t border-white/10">
+              <div>
+                <h3 className="text-white font-semibold text-lg">{selectedPhoto.title}</h3>
+                <p className="text-slate-400 text-sm mt-1">{fileName}</p>
               </div>
-              <div className="bg-slate-900 rounded-b-lg p-4 border-t border-slate-700 flex items-center justify-between flex-shrink-0">
-                <div>
-                  <h3 className="text-white font-semibold text-lg">{selectedPhoto.title}</h3>
-                  <p className="text-slate-400 text-sm mt-1">{fileName}</p>
-                </div>
-                <div className="text-slate-400 text-sm font-medium">
-                  {selectedImageIndex !== null && `${selectedImageIndex + 1} / ${availablePhotos.length}`}
-                </div>
+              <div className="text-slate-300 text-sm font-medium">
+                {selectedImageIndex !== null && `${selectedImageIndex + 1} / ${availablePhotos.length}`}
               </div>
             </div>
           </div>
