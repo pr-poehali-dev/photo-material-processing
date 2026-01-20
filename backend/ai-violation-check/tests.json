@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Check violation with image URL",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "imageUrl": "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "hasViolation": "boolean",
+        "confidence": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing image data",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

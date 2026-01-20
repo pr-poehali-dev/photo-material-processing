@@ -1391,11 +1391,89 @@ export default function Index() {
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
+                        className="flex-1 border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                        onClick={async () => {
+                          if (!selectedMaterial.preview && !selectedMaterial.images?.main) {
+                            alert('Изображение недоступно для анализа');
+                            return;
+                          }
+
+                          setMaterials(prev => prev.map(m => 
+                            m.id === selectedMaterial.id ? { ...m, isProcessingAI: true } : m
+                          ));
+                          setSelectedMaterial(prev => prev ? { ...prev, isProcessingAI: true } : null);
+
+                          try {
+                            const response = await fetch('https://functions.poehali.dev/ai-violation-check', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                imageUrl: selectedMaterial.images?.main || selectedMaterial.preview
+                              })
+                            });
+
+                            if (response.ok) {
+                              const result = await response.json();
+                              
+                              const aiPrediction = {
+                                hasViolation: result.hasViolation,
+                                confidence: result.confidence / 100,
+                                violationCode: result.violationCode,
+                                violationType: result.violationType,
+                                detectedObjects: result.detectedObjects?.map((obj: any) => ({
+                                  type: obj.type,
+                                  confidence: 0.85,
+                                  bbox: []
+                                }))
+                              };
+
+                              const newStatus = result.hasViolation ? 'processed' : 'clean';
+                              
+                              setMaterials(prev => prev.map(m =>
+                                m.id === selectedMaterial.id
+                                  ? {
+                                      ...m,
+                                      isProcessingAI: false,
+                                      aiPrediction,
+                                      status: newStatus,
+                                      violationCode: result.violationCode,
+                                      violationType: result.violationType
+                                    }
+                                  : m
+                              ));
+                              
+                              setSelectedMaterial(prev => prev ? {
+                                ...prev,
+                                isProcessingAI: false,
+                                aiPrediction,
+                                status: newStatus,
+                                violationCode: result.violationCode,
+                                violationType: result.violationType
+                              } : null);
+                            } else {
+                              throw new Error('Ошибка анализа');
+                            }
+                          } catch (error) {
+                            console.error('Ошибка AI анализа:', error);
+                            alert('Не удалось выполнить анализ. Проверьте настройки OpenAI API.');
+                            setMaterials(prev => prev.map(m =>
+                              m.id === selectedMaterial.id ? { ...m, isProcessingAI: false } : m
+                            ));
+                            setSelectedMaterial(prev => prev ? { ...prev, isProcessingAI: false } : null);
+                          }
+                        }}
+                        disabled={selectedMaterial.isProcessingAI}
+                      >
+                        <Icon name={selectedMaterial.isProcessingAI ? "Loader2" : "Sparkles"} size={16} className={`mr-2 ${selectedMaterial.isProcessingAI ? 'animate-spin' : ''}`} />
+                        {selectedMaterial.isProcessingAI ? 'Анализ...' : 'AI Проверка'}
+                      </Button>
+                      <Button
+                        variant="outline"
                         className="flex-1 border-blue-500 text-blue-400 hover:bg-blue-500/10"
                         onClick={() => setShowMarkup(!showMarkup)}
                       >
                         <Icon name="Pencil" size={16} className="mr-2" />
-                        {showMarkup ? 'Скрыть разметку' : 'Разметить нарушение'}
+                        {showMarkup ? 'Скрыть разметку' : 'Разметить'}
                       </Button>
                       <Button
                         variant="outline"
