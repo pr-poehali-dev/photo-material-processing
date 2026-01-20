@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import UserManagement from './UserManagement';
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -10,13 +9,12 @@ interface SettingsPanelProps {
   currentUser: any;
 }
 
-type Tab = 'users' | 'profile' | 'system';
+type Tab = 'profile' | 'system';
 
 const SettingsPanel = ({ onClose, sessionToken, currentUser }: SettingsPanelProps) => {
-  const [activeTab, setActiveTab] = useState<Tab>('users');
+  const [activeTab, setActiveTab] = useState<Tab>('profile');
 
   const tabs = [
-    { id: 'users' as Tab, label: 'Пользователи', icon: 'Users', adminOnly: true },
     { id: 'profile' as Tab, label: 'Профиль', icon: 'User' },
     { id: 'system' as Tab, label: 'Система', icon: 'Settings', adminOnly: true },
   ];
@@ -57,13 +55,6 @@ const SettingsPanel = ({ onClose, sessionToken, currentUser }: SettingsPanelProp
           </div>
 
           <div className="flex-1 overflow-y-auto p-6">
-            {activeTab === 'users' && currentUser?.role === 'admin' && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">Управление пользователями</h3>
-                <UserManagement sessionToken={sessionToken} />
-              </div>
-            )}
-
             {activeTab === 'profile' && (
               <div>
                 <h3 className="text-xl font-bold text-white mb-4">Профиль пользователя</h3>

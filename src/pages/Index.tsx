@@ -1404,7 +1404,7 @@ export default function Index() {
                           setSelectedMaterial(prev => prev ? { ...prev, isProcessingAI: true } : null);
 
                           try {
-                            const response = await fetch('https://functions.poehali.dev/ai-violation-check', {
+                            const response = await fetch('https://functions.poehali.dev/c6046da5-4836-4267-8674-0adb17b64196', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
