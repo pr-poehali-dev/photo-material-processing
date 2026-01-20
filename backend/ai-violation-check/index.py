@@ -1,8 +1,5 @@
 import json
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from decimal import Decimal
 
 def handler(event: dict, context) -> dict:
     '''API для автоматического определения нарушений ПДД с использованием обученной модели'''
