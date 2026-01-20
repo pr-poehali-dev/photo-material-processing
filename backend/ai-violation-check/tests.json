@@ -1,11 +1,11 @@
 {
   "tests": [
     {
-      "name": "Check violation with image URL",
+      "name": "Check violation with material ID",
       "method": "POST",
       "path": "/",
       "body": {
-        "imageUrl": "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800"
+        "materialId": "81574e89-cc71-430d-86e0-f7daad7c0c9a"
       },
       "expectedStatus": 200,
       "expectedBody": {
@@ -15,7 +15,7 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Missing image data",
+      "name": "Missing material ID",
       "method": "POST",
       "path": "/",
       "body": {},

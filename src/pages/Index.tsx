@@ -1408,7 +1408,7 @@ export default function Index() {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
-                                imageUrl: selectedMaterial.images?.main || selectedMaterial.preview
+                                materialId: selectedMaterial.id
                               })
                             });
 
