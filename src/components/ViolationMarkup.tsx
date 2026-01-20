@@ -85,8 +85,10 @@ const ViolationMarkup = ({
 
   const handleMouseUp = () => {
     if (drawingRegion && Math.abs(drawingRegion.width) > 1 && Math.abs(drawingRegion.height) > 1) {
-      setRegions([...regions, drawingRegion]);
-      setSelectedRegion(drawingRegion.id);
+      const autoLabel = getRegionTypeLabel(drawingRegion.type) + ' ' + (regions.filter(r => r.type === drawingRegion.type).length + 1);
+      const regionWithLabel = { ...drawingRegion, label: autoLabel };
+      setRegions([...regions, regionWithLabel]);
+      setSelectedRegion(regionWithLabel.id);
     }
     setDrawingRegion(null);
   };

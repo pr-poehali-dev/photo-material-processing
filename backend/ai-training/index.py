@@ -418,6 +418,33 @@ def handler(event: dict, context) -> dict:
                         'materials': processed
                     })
                 }
+            
+            elif action == 'delete-sample':
+                material_id = data.get('material_id')
+                
+                if not material_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'material_id is required'})
+                    }
+                
+                cursor.execute('DELETE FROM markup_regions WHERE material_id = %s', (material_id,))
+                cursor.execute('DELETE FROM violation_markups WHERE material_id = %s', (material_id,))
+                cursor.execute('DELETE FROM ai_training_data WHERE material_id = %s', (material_id,))
+                cursor.execute('DELETE FROM materials WHERE id = %s', (material_id,))
+                
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'material_id': material_id,
+                        'deleted': True
+                    })
+                }
         
         elif method == 'PUT':
             data = json.loads(event.get('body', '{}'))

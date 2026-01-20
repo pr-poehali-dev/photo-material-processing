@@ -531,6 +531,30 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={async () => {
+                              if (!confirm(`Удалить образец "${item.file_name}"?`)) return;
+                              
+                              try {
+                                const response = await fetch('https://functions.poehali.dev/f988916a-a0b1-4821-8408-f7732ad49548', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    action: 'delete-sample',
+                                    material_id: item.material_id
+                                  })
+                                });
+                                
+                                if (response.ok) {
+                                  await loadTrainingData();
+                                  await loadDatasetStats();
+                                } else {
+                                  alert('Ошибка при удалении образца');
+                                }
+                              } catch (error) {
+                                console.error('Ошибка удаления:', error);
+                                alert('Ошибка при удалении образца');
+                              }
+                            }}
                             className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-500/10"
                             title="Удалить"
                           >
@@ -592,10 +616,15 @@ const AITrainingPanel = ({ isOpen, onClose, violationCodes }: AITrainingPanelPro
                 alert('Разметка сохранена!');
                 setSelectedSampleForMarkup(null);
                 await loadTrainingData();
+                await loadDatasetStats();
+              } else {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Ошибка сохранения:', response.status, errorData);
+                alert(`Ошибка сохранения: ${errorData.error || response.statusText}`);
               }
             } catch (error) {
               console.error('Ошибка сохранения разметки:', error);
-              alert('Ошибка сохранения');
+              alert(`Ошибка сохранения: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
           }}
           onCancel={() => setSelectedSampleForMarkup(null)}
