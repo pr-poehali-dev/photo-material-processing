@@ -58,8 +58,10 @@ const ViolationMarkup = ({
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
+    const regionId = `${materialId}-${regionType}-${regions.filter(r => r.type === regionType).length + 1}`;
+
     setDrawingRegion({
-      id: Date.now().toString(),
+      id: regionId,
       x,
       y,
       width: 0,
