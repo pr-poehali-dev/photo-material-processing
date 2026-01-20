@@ -200,11 +200,11 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
               </Button>
             )}
 
-            <div className="absolute inset-0 flex items-center justify-center p-2">
+            <div className="absolute inset-0 flex items-center justify-center">
               <img
                 src={selectedPhoto.image}
                 alt={selectedPhoto.title}
-                className="max-w-[calc(100vw-80px)] max-h-[calc(100vh-80px)] w-auto h-auto object-contain"
+                className="max-w-[calc(100vw-100px)] max-h-[calc(100vh-20px)] w-auto h-auto object-contain"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
