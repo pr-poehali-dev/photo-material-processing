@@ -1388,14 +1388,24 @@ export default function Index() {
                   </div>
 
                   <div className="border-t border-slate-700 pt-4 space-y-4">
-                    <Button
-                      variant="outline"
-                      className="w-full border-blue-500 text-blue-400 hover:bg-blue-500/10"
-                      onClick={() => setShowMarkup(!showMarkup)}
-                    >
-                      <Icon name="Pencil" size={16} className="mr-2" />
-                      {showMarkup ? 'Скрыть разметку' : 'Разметить нарушение'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                        onClick={() => setShowMarkup(!showMarkup)}
+                      >
+                        <Icon name="Pencil" size={16} className="mr-2" />
+                        {showMarkup ? 'Скрыть разметку' : 'Разметить нарушение'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                        onClick={() => setShowInstructions(true)}
+                        title="Инструкция для разметчика"
+                      >
+                        <Icon name="BookOpen" size={16} />
+                      </Button>
+                    </div>
 
                     {showMarkup && selectedMaterial.images?.main && (
                       <ViolationMarkup
@@ -1455,78 +1465,7 @@ export default function Index() {
                         onValuesChange={setParameterValues}
                       />
                     )}
-                  </div>
 
-                  <div className="border-t border-slate-700 pt-4 space-y-4">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        className="flex-1 border-blue-500 text-blue-400 hover:bg-blue-500/10"
-                        onClick={() => setShowMarkup(!showMarkup)}
-                      >
-                        <Icon name="Pencil" size={16} className="mr-2" />
-                        {showMarkup ? 'Скрыть разметку' : 'Разметить нарушение'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                        onClick={() => setShowInstructions(true)}
-                        title="Инструкция для разметчика"
-                      >
-                        <Icon name="BookOpen" size={16} />
-                      </Button>
-                    </div>
-
-                    {showMarkup && selectedMaterial.images?.main && (
-                      <ViolationMarkup
-                        materialId={selectedMaterial.id}
-                        imageUrl={selectedMaterial.images.main}
-                        violationCodes={violationCodes}
-                        onSave={async (markup) => {
-                          try {
-                            const response = await fetch('https://functions.poehali.dev/9128cf27-3d45-4ac1-b0a2-0c2935594a9e', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                material_id: markup.materialId,
-                                violation_code: markup.violationCode,
-                                regions: markup.regions,
-                                notes: markup.notes,
-                                is_training_data: markup.isTrainingData,
-                                parameters: parameterValues
-                              })
-                            });
-                            if (response.ok) {
-                              alert('Разметка сохранена!');
-                              setShowMarkup(false);
-                            }
-                          } catch (error) {
-                            console.error('Ошибка сохранения разметки:', error);
-                          }
-                        }}
-                        onCancel={() => setShowMarkup(false)}
-                      />
-                    )}
-
-                    {selectedMaterial.violationCode && (
-                      <Button
-                        variant="outline"
-                        className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/10"
-                        onClick={() => setShowParameters(!showParameters)}
-                      >
-                        <Icon name="Settings" size={16} className="mr-2" />
-                        {showParameters ? 'Скрыть параметры' : 'Параметры нарушения'}
-                      </Button>
-                    )}
-
-                    {showParameters && selectedMaterial.violationCode && (
-                      <ViolationParameters
-                        violationCode={selectedMaterial.violationCode}
-                        parameters={defaultParametersByCode[selectedMaterial.violationCode] || []}
-                        initialValues={parameterValues}
-                        onValuesChange={setParameterValues}
-                      />
-                    )}
                   </div>
 
                   <div className="border-t border-slate-700 pt-4">
