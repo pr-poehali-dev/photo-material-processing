@@ -39,7 +39,6 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('Login error:', response.status, data);
         setError(data.error || 'Ошибка');
         return;
       }
@@ -57,7 +56,6 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
         alert(data.message || 'Регистрация успешна! Ожидайте подтверждения администратора.');
       }
     } catch (err) {
-      console.error('Fetch error:', err, 'for', `https://functions.poehali.dev/3100b78e-436b-4b84-a95b-b8335e0f2fdc?action=${isLogin ? 'login' : 'register'}`);
       setError('Ошибка соединения с сервером');
     } finally {
       setLoading(false);
