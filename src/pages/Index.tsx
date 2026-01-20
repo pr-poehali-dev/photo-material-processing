@@ -1219,18 +1219,44 @@ export default function Index() {
                           </div>
                         )}
                         {material.aiPrediction && !material.isProcessingAI && (
-                          <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded">
-                            <div className="flex items-center justify-between">
+                          <div className="mt-2 p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <Icon name="Brain" size={14} className="text-blue-400" />
-                                <p className="text-blue-400 text-sm font-medium">
-                                  ИИ: {material.aiPrediction.hasViolation ? 'Нарушение' : 'Чисто'}
+                                <Icon name="Brain" size={16} className="text-blue-400" />
+                                <p className="text-blue-400 text-sm font-semibold">
+                                  ИИ: {material.aiPrediction.hasViolation ? 'Нарушение обнаружено' : 'Нарушений нет'}
                                 </p>
                               </div>
-                              <Badge variant="outline" className="text-blue-400 border-blue-400">
-                                {(material.aiPrediction.confidence * 100).toFixed(0)}%
+                              <Badge 
+                                variant="outline" 
+                                className={`${
+                                  material.aiPrediction.confidence * 100 >= 80 
+                                    ? 'text-green-400 border-green-400' 
+                                    : material.aiPrediction.confidence * 100 >= 60
+                                    ? 'text-yellow-400 border-yellow-400'
+                                    : 'text-orange-400 border-orange-400'
+                                } font-bold`}
+                              >
+                                {(material.aiPrediction.confidence * 100).toFixed(1)}%
                               </Badge>
                             </div>
+                            <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  material.aiPrediction.confidence * 100 >= 80 
+                                    ? 'bg-gradient-to-r from-green-500 to-emerald-400' 
+                                    : material.aiPrediction.confidence * 100 >= 60
+                                    ? 'bg-gradient-to-r from-yellow-500 to-amber-400'
+                                    : 'bg-gradient-to-r from-orange-500 to-red-400'
+                                }`}
+                                style={{ width: `${material.aiPrediction.confidence * 100}%` }}
+                              />
+                            </div>
+                            {material.aiPrediction.violationCode && (
+                              <p className="text-slate-300 text-xs mt-2">
+                                {material.aiPrediction.violationCode}: {material.aiPrediction.violationType}
+                              </p>
+                            )}
                           </div>
                         )}
                         {material.violationType && !material.aiPrediction && (
@@ -1279,21 +1305,54 @@ export default function Index() {
                         </Badge>
                       </div>
                       {selectedMaterial.aiPrediction && (
-                        <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-lg space-y-2">
-                          <div className="flex items-center justify-between">
+                        <div className="p-4 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-cyan-500/10 border border-purple-500/30 rounded-xl space-y-3 shadow-lg">
+                          <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <Icon name="Brain" size={16} className="text-purple-400" />
-                              <span className="text-sm font-semibold text-purple-400">Анализ ИИ</span>
+                              <div className="p-2 bg-purple-500/20 rounded-lg">
+                                <Icon name="Brain" size={18} className="text-purple-400" />
+                              </div>
+                              <span className="text-base font-bold text-white">Анализ ИИ</span>
                             </div>
-                            <Badge variant="outline" className="text-purple-400 border-purple-400">
+                            <Badge 
+                              variant="outline" 
+                              className={`${
+                                selectedMaterial.aiPrediction.confidence * 100 >= 80 
+                                  ? 'text-green-400 border-green-400 bg-green-500/10' 
+                                  : selectedMaterial.aiPrediction.confidence * 100 >= 60
+                                  ? 'text-yellow-400 border-yellow-400 bg-yellow-500/10'
+                                  : 'text-orange-400 border-orange-400 bg-orange-500/10'
+                              } font-bold text-base px-3 py-1`}
+                            >
                               {(selectedMaterial.aiPrediction.confidence * 100).toFixed(1)}%
                             </Badge>
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-300">Результат:</span>
-                            <span className={selectedMaterial.aiPrediction.hasViolation ? "text-orange-400 font-medium" : "text-green-400 font-medium"}>
-                              {selectedMaterial.aiPrediction.hasViolation ? 'Нарушение обнаружено' : 'Нарушений не обнаружено'}
-                            </span>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs text-slate-400">
+                              <span>Уверенность модели</span>
+                              <span className="font-mono">{(selectedMaterial.aiPrediction.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div className="w-full bg-slate-700/50 rounded-full h-3 overflow-hidden shadow-inner">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-700 ease-out shadow-lg ${
+                                  selectedMaterial.aiPrediction.confidence * 100 >= 80 
+                                    ? 'bg-gradient-to-r from-green-500 via-emerald-400 to-green-500 animate-pulse' 
+                                    : selectedMaterial.aiPrediction.confidence * 100 >= 60
+                                    ? 'bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-500'
+                                    : 'bg-gradient-to-r from-orange-500 via-red-400 to-orange-500'
+                                }`}
+                                style={{ width: `${selectedMaterial.aiPrediction.confidence * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="pt-3 border-t border-purple-500/20">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-slate-300 font-medium">Результат:</span>
+                              <span className={selectedMaterial.aiPrediction.hasViolation ? "text-orange-400 font-bold" : "text-green-400 font-bold"}>
+                                {selectedMaterial.aiPrediction.hasViolation ? 'Нарушение обнаружено' : 'Нарушений не обнаружено'}
+                              </span>
+                            </div>
                           </div>
                           {selectedMaterial.aiPrediction.detectedObjects && selectedMaterial.aiPrediction.detectedObjects.length > 0 && (
                             <div className="pt-2 border-t border-purple-500/20">
