@@ -200,22 +200,24 @@ export default function PhotoGallery({ images, fileName, photoMaterials }: Photo
               </Button>
             )}
 
-            <div className="flex-1 flex items-center justify-center px-20 py-4">
+            <div className="absolute inset-0 flex items-center justify-center p-2">
               <img
                 src={selectedPhoto.image}
                 alt={selectedPhoto.title}
-                className="max-w-full max-h-full w-auto h-auto object-contain"
+                className="max-w-[calc(100vw-80px)] max-h-[calc(100vh-80px)] w-auto h-auto object-contain"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
             
-            <div className="bg-black/80 backdrop-blur-sm p-4 flex items-center justify-between flex-shrink-0 border-t border-white/10">
-              <div>
-                <h3 className="text-white font-semibold text-lg">{selectedPhoto.title}</h3>
-                <p className="text-slate-400 text-sm mt-1">{fileName}</p>
-              </div>
-              <div className="text-slate-300 text-sm font-medium">
-                {selectedImageIndex !== null && `${selectedImageIndex + 1} / ${availablePhotos.length}`}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-6 pt-12">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-semibold text-lg drop-shadow-lg">{selectedPhoto.title}</h3>
+                  <p className="text-slate-300 text-sm mt-1 drop-shadow-lg">{fileName}</p>
+                </div>
+                <div className="text-slate-200 text-sm font-medium drop-shadow-lg">
+                  {selectedImageIndex !== null && `${selectedImageIndex + 1} / ${availablePhotos.length}`}
+                </div>
               </div>
             </div>
           </div>
